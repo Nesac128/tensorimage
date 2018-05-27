@@ -3,10 +3,10 @@ import pandas as pd
 import numpy as np
 import json
 
-from nnir.nnir.pcontrol import *
-from nnir.meta.config import external_working_directory_path
-from nnir.scripts.multilayer_perceptron import multilayer_perceptron
-from nnir.image.display import display_image
+from nnir.pcontrol import *
+from meta.config import external_working_directory_path
+from scripts.multilayer_perceptron import multilayer_perceptron
+from image.display import display_image
 
 
 class Predict:

@@ -1,7 +1,7 @@
 from PIL import Image
 import time
-from nnir.nnir.pcontrol import *
-from nnir.exceptions import *
+from nnir.pcontrol import *
+from exceptions import *
 
 
 class ImageLoader:

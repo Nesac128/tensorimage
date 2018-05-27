@@ -5,9 +5,9 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-from nnir.nnir.pcontrol import *
-from nnir.exceptions import *
-from nnir.scripts.multilayer_perceptron import multilayer_perceptron
+from nnir.pcontrol import *
+from exceptions import *
+from scripts.multilayer_perceptron import multilayer_perceptron
 
 
 class Train:

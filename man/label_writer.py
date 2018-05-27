@@ -3,7 +3,7 @@ import string
 from itertools import product
 import json
 
-from nnir.meta.config import external_working_directory_path
+from meta.config import external_working_directory_path
 
 bspath = external_working_directory_path+'/training_images/TwinFaces/'
 
