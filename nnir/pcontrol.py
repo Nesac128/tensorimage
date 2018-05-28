@@ -9,7 +9,8 @@ class Sess:
 
     def read(self):
         with open('meta/ims.txt', 'r') as sessfile:
-            return str(sessfile.readline())
+            id = int(0)
+            return str(id)
 
 
 class MetaData:
@@ -17,13 +18,13 @@ class MetaData:
         self.wsess_id = str(writer_sess_id)
 
     def write(self, **meta):
-        with open('metadata/sess/'+self.wsess_id+'/meta.txt', 'a') as metadata:
+        with open('meta/sess/'+self.wsess_id+'/meta.txt', 'a') as metadata:
             for key in meta:
                 for val in meta.values():
                     metadata.write(key.upper()+'='+val+'\n')
 
     def read(self, *tags, sess_id):
-        reader = Reader('metadata/sess/' + str(sess_id) + '/meta.txt')
+        reader = Reader('meta/sess/' + str(sess_id) + '/meta.txt')
         meta = reader.clean_read()
         for mt in meta:
             for tag in tags:
@@ -69,14 +70,14 @@ class PathManager:
 
         self.pfile = meta[0]
 
-        if not os.path.exists('metadata/sess/' + self.sess_id + '/impaths.csv'):
-            with open('metadata/sess/' + self.sess_id + '/impaths.csv', 'w') as pathfile:
+        if not os.path.exists('meta/sess/' + self.sess_id + '/impaths.csv'):
+            with open('meta/sess/' + self.sess_id + '/impaths.csv', 'w') as pathfile:
                 pathfile.close()
 
     def cpaths(self):
         reader = Reader(self.pfile)
         paths = reader.clean_read()
-        with open('metadata/sess/' + self.sess_id + '/impaths.csv', 'a') as pathfile:
+        with open('meta/sess/' + self.sess_id + '/impaths.csv', 'a') as pathfile:
             writer = csv.writer(pathfile, delimiter='\n')
             for path in paths:
                 writer.writerow([path])

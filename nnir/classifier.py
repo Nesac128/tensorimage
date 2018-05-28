@@ -40,10 +40,8 @@ class Predict:
 
         with open(external_working_directory_path+'/datasets/'+self.dataset_name+'/obj_labels.json', 'r') as ol:
             data = json.load(ol)
-            ln = 0
-            for item in sorted(data.values()):
+            for ln, item in enumerate(sorted(data.values())):
                 int_to_label[item] = ln
-                ln += 1
 
         return int_to_label
 
