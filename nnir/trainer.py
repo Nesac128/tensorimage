@@ -6,8 +6,9 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
 from nnir.pcontrol import *
-from exceptions import *
 from scripts.multilayer_perceptron import multilayer_perceptron
+from meta.config import external_working_directory_path
+from exceptions import *
 
 
 class Train:
@@ -19,7 +20,7 @@ class Train:
                  n_perceptrons_layer: tuple = (100, 51, 51, 51),
                  epochs: int = 150,
                  learning_rate: float = 0.2,
-                 train_test_split: float = 0.2):
+                 train_test_split: float = 0.1):
         self.labels = []
 
         # Store parameter inputs
@@ -143,7 +144,7 @@ class Train:
         mse_ = sess.run(mse)
         print("MSE ", mse_)
 
-        saver.save(sess, self.model_store_path+self.model_fname,
+        saver.save(sess, external_working_directory_path+self.model_store_path+self.model_fname,
                    global_step=tf.train.global_step(sess, global_step))
 
         self.write_labels()
