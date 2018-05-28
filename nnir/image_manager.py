@@ -1,7 +1,9 @@
 from PIL import Image
 import time
-from nnir.pcontrol import *
+
 from exceptions import *
+from nnir.pcontrol import *
+from meta.config import external_working_directory_path
 
 
 class ImageLoader:
@@ -20,8 +22,8 @@ class ImageLoader:
 
         self.pixels = []
 
-        if not os.path.exists('meta/sess/'+str(self.sess.read()+'/')):
-            os.mkdir('meta/sess/'+str(self.sess.read()+'/'))
+        if not os.path.exists('meta/sess/'+str(self.sess.read())+'/'):
+            os.mkdir('meta/sess/'+str(self.sess.read())+'/')
 
         self.Meta = MetaData(self.sess.read())
 
@@ -54,11 +56,10 @@ class ImageLoader:
                 if n_image > f[0]:
                     break
                 else:
-                    for x in range(self.get_dims()[n_image][0]):
-                        for y in range(self.get_dims()[n_image][1]):
-                            rgb_sum = pixels[x, y][0] + pixels[x, y][1] + pixels[x, y][2]
-                            rgb_avr = rgb_sum / 3
-                            im_pixels.append(rgb_avr)
+                    for x, y in zip(range(self.get_dims()[n_image][0]), range(self.get_dims()[n_image][1])):
+                        rgb_sum = pixels[x, y][0] + pixels[x, y][1] + pixels[x, y][2]
+                        rgb_avr = rgb_sum / 3
+                        im_pixels.append(rgb_avr)
             self.pixels.append(im_pixels)
         print("Finished mean_pixels ...")
         time.sleep(3)
@@ -96,13 +97,12 @@ class ImageLoader:
 
     def getRGB(self):
         rgb_vals = []
-        n = 0
         pixels = ''
         if self.method == 'mean_pixels':
             pixels = self.mean_pixels()
         elif self.method == 'non_mean_pixels':
             pixels = self.cpixels()
-        for im_pixels in pixels:
+        for n, im_pixels in enumerate(pixels):
             print("Reading image ", n, " out of ", len(pixels))
             rgb_vals.append(im_pixels)
             self.rgb_vals.append(im_pixels)
@@ -124,7 +124,8 @@ class ImageDataWriter:
         self.Meta.write(trainable='False')
 
     def writeCSV(self, img):
-        with open(self.fname, 'a') as csvfile:
+        print(external_working_directory_path)
+        with open(external_working_directory_path+self.fname, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerow(img)
 
@@ -143,18 +144,15 @@ class ImageTrainDataWriter:
 
     def clabels(self):
         unique_labels = []
-        c = 0
-        for label_n in range(len(self.labels)):
+        for c, label in enumerate(self.labels):
             print(unique_labels)
-            if label_n == 0:
-                unique_labels.append(self.labels[label_n])
-                c += 1
+            if c == 0:
+                unique_labels.append(label)
             else:
-                unique_labels.append(self.labels[label_n])
+                unique_labels.append(label)
                 if unique_labels[c-1] == unique_labels[c]:
                     del unique_labels[c]
                 else:
-                    c += 1
                     continue
 
         return str(len(unique_labels))
@@ -163,8 +161,8 @@ class ImageTrainDataWriter:
         Freader = Reader(self.fname)
         data = Freader.clean_read()
         hist = []
-        for invn in range(len(data)):
-            hist.append(data[invn])
+        for invn, inv in enumerate(data):
+            hist.append(inv)
             if invn == 0:
                 continue
             if hist[invn] != [inv for inv in data]:
@@ -181,7 +179,7 @@ class ImageTrainDataWriter:
         self.ccolumns()
 
     def writeCSV(self, img):
-        with open(self.fname, 'a') as csvfile:
+        with open(external_working_directory_path+self.fname, 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             writer.writerow(img)
 
@@ -189,5 +187,5 @@ class ImageTrainDataWriter:
         self.Meta.write(data_path=os.getcwd() + '/' + self.fname)
         self.Meta.write(n_classes=self.clabels())
         self.Meta.write(trainable='True')
-        for tag in tags.items():
-            self.Meta.write()
+        for tag in list(tags.items()):
+            exec('self.Meta.write('+str(tag[0]+'='+str(tag[1])+')'))
