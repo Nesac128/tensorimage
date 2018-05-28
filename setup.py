@@ -4,7 +4,7 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='Neural Network Data Training & Classification',
+    name='nnir',
     version='0.0.1',
     description='Python package to train neural networks to classify data',
     long_description=long_description,
