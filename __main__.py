@@ -53,3 +53,15 @@ elif config.opt == 'im_man_2':
         writer = ni.ImageDataWriter(data, file_name)
         writer.main()
     im_man_()
+elif config.opt == 'classify':
+    @click.command()
+    @click.option('--sess_id', required=True)
+    @click.option('--model_path', required=True)
+    @click.option('--model_name', required=True)
+    @click.option('--dataset_name', required=True)
+    @click.option('prediction_fname', default='predictions')
+    @click.option('--show_im', default=True)
+    def predict(sess_id: int, model_path: str, model_name: str, dataset_name: str, prediction_fname: str, show_im: bool):
+        predicter = nc.Predict(sess_id, model_path, model_name, dataset_name,
+                               prediction_fname=prediction_fname, show_im=show_im)
+        predicter.main()
