@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 
 from nnir.pcontrol import *
 from scripts.multilayer_perceptron import multilayer_perceptron
-from meta.config import external_working_directory_path
+from config import external_working_directory_path
 from exceptions import *
 
 
