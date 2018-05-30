@@ -2,7 +2,10 @@ import click
 
 import nnir.trainer as nt
 import nnir.classifier as nc
-import nnir.image_manager as ni
+import image.loader as iml
+import image.writer as iw
+import sound.loader as sl
+import sound.writer as sw
 
 
 class Config:
@@ -30,29 +33,55 @@ if config.opt == 'train':
                            epochs=epochs, learning_rate=learning_rate, train_test_split=train_test_split)
         trainer.train()
     train()
+
 elif config.opt == 'im_man_1':
     @click.command()
     @click.option('--path_to_path_file', required=True)
     @click.option('--method', help='Method by which to extract pixel values')
     @click.option('--file_name', required=True, help='File name for training data CSV file')
     @click.option('--label_file_path', required=True, help='Path to text file containing labels')
-    def im_man(path_to_path_file: str, method: str, file_name: str, label_file_path: str):
-        loader = ni.ImageLoader(path_to_path_file, method=method)
+    def im_man_1(path_to_path_file: str, method: str, file_name: str, label_file_path: str):
+        loader = iml.ImageLoader(path_to_path_file, method=method)
         data = loader.main()
-        writer = ni.ImageTrainDataWriter(data, file_name, label_file_path)
+        writer = iw.TrainDataWriter(data, file_name, label_file_path)
         writer.main()
-    im_man()
+    im_man_1()
+
 elif config.opt == 'im_man_2':
     @click.command()
     @click.option('--path_to_path_file', required=True)
     @click.option('--method', required=True, help='Method by which to extract pixel values')
     @click.option('--file_name', required=True, help='File name for training data CSV file')
-    def im_man_(path_to_path_file: str, method: str, file_name: str):
-        loader = ni.ImageLoader(path_to_path_file, method=method)
+    def im_man_2(path_to_path_file: str, method: str, file_name: str):
+        loader = iml.ImageLoader(path_to_path_file, method=method)
         data = loader.main()
-        writer = ni.ImageDataWriter(data, file_name)
+        writer = iw.DataWriter(data, file_name)
         writer.main()
-    im_man_()
+    im_man_2()
+
+elif config.opt == 'snd_man_1':
+    @click.command()
+    @click.option('--path_to_path_file', required=True)
+    @click.option('--file_name', required=True)
+    def snd_man_1(path_to_path_file: str, fname: str):
+        loader = sl.Loader(path_to_path_file)
+        data = loader.main()
+        writer = sw.DataWriter(data, fname)
+        writer.main()
+    snd_man_1()
+
+elif config.opt == 'snd_man_2':
+    @click.command()
+    @click.option('--path_to_path_file', required=True)
+    @click.option('--path_to_label_file', required=True)
+    @click.option('--file_name', required=True)
+    def snd_man_2(path_to_path_file: str, path_to_label_file: str, fname: str):
+        loader = sl.Loader(path_to_path_file)
+        data = loader.main()
+        writer = sw.TrainDataWriter(data, fname, path_to_label_file)
+        writer.main()
+    snd_man_2()
+
 elif config.opt == 'classify':
     @click.command()
     @click.option('--sess_id', required=True)
