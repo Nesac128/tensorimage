@@ -1,16 +1,24 @@
 import os
 import csv
 
+from config import nnir_path
+
 
 class Sess:
     def add(self):
-        with open('meta/ims.txt', 'w') as sessfile:
-            sessfile.write(str(int(self.read()) + 1))
+        nid = str(int(self.read())+1)
+        with open(nnir_path+'meta/ims.txt', 'w') as sessfile:
+            sessfile.write(nid)
 
     def read(self):
-        with open('meta/ims.txt', 'r') as sessfile:
-            id = int(0)
-            return str(id)
+        with open(nnir_path+'meta/ims.txt', 'r') as sessfile:
+            id = sessfile.read()
+            sessfile.close()
+        return str(id)
+
+    def ndir(self):
+        if not os.path.exists(nnir_path+'meta/sess/'+str(self.read())):
+            os.mkdir(nnir_path+'meta/sess/'+str(self.read()))
 
 
 class MetaData:
@@ -18,13 +26,13 @@ class MetaData:
         self.wsess_id = str(writer_sess_id)
 
     def write(self, **meta):
-        with open('meta/sess/'+self.wsess_id+'/meta.txt', 'a') as metadata:
+        with open(nnir_path+'meta/sess/'+self.wsess_id+'/meta.txt', 'a') as metadata:
             for key in meta:
                 for val in meta.values():
                     metadata.write(key.upper()+'='+val+'\n')
 
     def read(self, *tags, sess_id):
-        reader = Reader('meta/sess/' + str(sess_id) + '/meta.txt')
+        reader = Reader(nnir_path+'meta/sess/' + str(sess_id) + '/meta.txt')
         meta = reader.clean_read()
         for mt in meta:
             for tag in tags:
@@ -70,14 +78,14 @@ class PathManager:
 
         self.pfile = meta[0]
 
-        if not os.path.exists('meta/sess/' + self.sess_id + '/impaths.csv'):
-            with open('meta/sess/' + self.sess_id + '/impaths.csv', 'w') as pathfile:
+        if not os.path.exists(nnir_path+'meta/sess/' + self.sess_id + '/impaths.csv'):
+            with open(nnir_path+'meta/sess/' + self.sess_id + '/impaths.csv', 'w') as pathfile:
                 pathfile.close()
 
     def cpaths(self):
         reader = Reader(self.pfile)
         paths = reader.clean_read()
-        with open('meta/sess/' + self.sess_id + '/impaths.csv', 'a') as pathfile:
+        with open(nnir_path+'meta/sess/' + self.sess_id + '/impaths.csv', 'a') as pathfile:
             writer = csv.writer(pathfile, delimiter='\n')
             for path in paths:
                 writer.writerow([path])
