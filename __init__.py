@@ -1,5 +1,5 @@
 import os
-from meta.config import external_working_directory_path
+from config import external_working_directory_path
 
 if not os.path.exists(external_working_directory_path+'/datasets'):
     os.mkdir(external_working_directory_path+'/datasets')
