@@ -6,7 +6,7 @@ import image.loader as iml
 import image.writer as iw
 import sound.loader as sl
 import sound.writer as sw
-
+import man.label_path_writer as mlpw
 
 class Config:
     def __init__(self):
@@ -36,10 +36,10 @@ if config.opt == 'train':
 
 elif config.opt == 'im_man_1':
     @click.command()
-    @click.option('--path_to_path_file', required=True)
-    @click.option('--method', help='Method by which to extract pixel values')
-    @click.option('--file_name', required=True, help='File name for training data CSV file')
-    @click.option('--label_file_path', required=True, help='Path to text file containing labels')
+    # @click.option('--im1_path_to_path_file', required=True)
+    @click.option('--im1_method', help='Method by which to extract pixel values')
+    @click.option('--im1_file_name', required=True, help='File name for training data CSV file')
+    @click.option('--im_label_file_path', required=True, help='Path to text file containing labels')
     def im_man_1(path_to_path_file: str, method: str, file_name: str, label_file_path: str):
         loader = iml.ImageLoader(path_to_path_file, method=method)
         data = loader.main()
@@ -49,9 +49,9 @@ elif config.opt == 'im_man_1':
 
 elif config.opt == 'im_man_2':
     @click.command()
-    @click.option('--path_to_path_file', required=True)
-    @click.option('--method', required=True, help='Method by which to extract pixel values')
-    @click.option('--file_name', required=True, help='File name for training data CSV file')
+    # @click.option('--im2_path_to_path_file', required=True)
+    @click.option('--im2_method', required=True, help='Method by which to extract pixel values')
+    @click.option('--im2_file_name', required=True, help='File name for training data CSV file')
     def im_man_2(path_to_path_file: str, method: str, file_name: str):
         loader = iml.ImageLoader(path_to_path_file, method=method)
         data = loader.main()
@@ -61,36 +61,51 @@ elif config.opt == 'im_man_2':
 
 elif config.opt == 'snd_man_1':
     @click.command()
-    @click.option('--path_to_path_file', required=True)
-    @click.option('--file_name', required=True)
-    def snd_man_1(path_to_path_file: str, fname: str):
-        loader = sl.Loader(path_to_path_file)
+    @click.argument('path_file_path')
+    @click.argument('file_name')
+    def snd_man_1(path_file_path, file_name):
+        loader = sl.Loader(path_file_path)
         data = loader.main()
-        writer = sw.DataWriter(data, fname)
+        writer = sw.DataWriter(data, file_name)
         writer.main()
     snd_man_1()
 
 elif config.opt == 'snd_man_2':
     @click.command()
-    @click.option('--path_to_path_file', required=True)
-    @click.option('--path_to_label_file', required=True)
-    @click.option('--file_name', required=True)
-    def snd_man_2(path_to_path_file: str, path_to_label_file: str, fname: str):
-        loader = sl.Loader(path_to_path_file)
+    @click.argument('path_file_path')
+    @click.argument('label_file_path')
+    @click.argument('file_name')
+    def snd_man_2(path_file_path: str, label_file_path: str, file_name: str):
+        loader = sl.Loader(path_file_path)
         data = loader.main()
-        writer = sw.TrainDataWriter(data, fname, path_to_label_file)
+        writer = sw.TrainDataWriter(data, file_name, label_file_path)
         writer.main()
     snd_man_2()
 
 elif config.opt == 'classify':
     @click.command()
-    @click.option('--sess_id', required=True)
-    @click.option('--model_path', required=True)
-    @click.option('--model_name', required=True)
-    @click.option('--dataset_name', required=True)
-    @click.option('prediction_fname', default='predictions')
-    @click.option('--show_im', default=True)
-    def predict(sess_id: int, model_path: str, model_name: str, dataset_name: str, prediction_fname: str, show_im: bool):
+    @click.argument('sess_id', required=True)
+    @click.argument('model_path', required=True)
+    @click.argument('model_name', required=True)
+    @click.argument('dataset_name', required=True)
+    @click.argument('prediction_fname', default='predictions')
+    @click.argument('show_image', default=True)
+    def predict(sess_id: int, model_path: str, model_name: str, dataset_name: str, prediction_fname: str, show_image: bool):
         predicter = nc.Predict(sess_id, model_path, model_name, dataset_name,
-                               prediction_fname=prediction_fname, show_im=show_im)
+                               prediction_fname=prediction_fname, show_im=False)
         predicter.main()
+    predict()
+elif config.opt == 'write_paths':
+    @click.command()
+    @click.argument('main_directory_path')
+    @click.argument('dataset_name')
+    def path_writer(main_directory_path, dataset_name):
+        mlpw.write_paths(main_directory_path, dataset_name)
+    path_writer()
+elif config.opt == 'write_labels':
+    @click.command()
+    @click.argument('main_directory_path')
+    @click.argument('dataset_name')
+    def label_writer(main_directory_path, dataset_name):
+        mlpw.write_labels(main_directory_path, dataset_name)
+    label_writer()
