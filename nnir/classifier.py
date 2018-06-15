@@ -4,7 +4,7 @@ import numpy as np
 import json
 
 from nnir.pcontrol import *
-from meta.config import external_working_directory_path
+from config import *
 from scripts.multilayer_perceptron import multilayer_perceptron
 from image.display import display_image
 
@@ -38,7 +38,7 @@ class Predict:
     def label_assigner(self):
         int_to_label = {}
 
-        with open(external_working_directory_path+'/datasets/'+self.dataset_name+'/obj_labels.json', 'r') as ol:
+        with open(external_working_directory_path+'datasets/'+self.dataset_name+'/obj_labels.json', 'r') as ol:
             data = json.load(ol)
             for ln, item in enumerate(sorted(data.values())):
                 int_to_label[item] = ln
@@ -49,10 +49,10 @@ class Predict:
         sess = tf.Session()
 
         # Create saver
-        saver = tf.train.import_meta_graph(self.model_path + self.model_name + '.meta')
+        saver = tf.train.import_meta_graph(external_working_directory_path+self.model_path + self.model_name + '.meta')
 
         # Attempt to restore model for prediction
-        saver.restore(sess, tf.train.latest_checkpoint(self.model_path + './'))
+        saver.restore(sess, tf.train.latest_checkpoint(external_working_directory_path+self.model_path + './'))
         print("Trained model has been restored successfully!")
 
         x = tf.placeholder(tf.float32, [None, sess.run('n_dim:0')])
@@ -108,7 +108,7 @@ class Predict:
         for pix_data_n in range(len(data)):
             data[pix_data_n].append(self.predictions[pix_data_n])
 
-        with open(self.pfnames[0], 'a') as csvfile:
+        with open(external_working_directory_path+self.pfnames[0], 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
             for im_pix_data in data:
                 writer.writerow(im_pix_data)
@@ -132,7 +132,7 @@ class Predict:
         for _, row in raw_rows:
             paths.append(list(row)[0])
 
-        with open(self.pfnames[1], 'w') as pathfile:
+        with open(external_working_directory_path+self.pfnames[1], 'w') as pathfile:
             writer = csv.writer(pathfile, delimiter=',')
             for n in range(len(paths)):
                 if self.show_im is True:
