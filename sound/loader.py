@@ -3,6 +3,7 @@ import re
 
 import nnir.pcontrol as np
 from config import *
+from man import sound_iter_clean as sic
 
 
 class Loader:
@@ -32,6 +33,7 @@ class Loader:
                               wavpath.split('/')[-1].split('.')[0]+'.dat')
 
     def clean_dat(self):
+        data = []
         for wavpath in self.files:
             with open(nnir_path+'tmp/'+wavpath.split('/')[-1].split('.')[0]+'.dat', 'r') as datfile:
                 read_lines = datfile.readlines()
@@ -44,17 +46,20 @@ class Loader:
                     ln = float(sentence.split(',')[0]), float(sentence.split(',')[1])
                     lines.append(ln)
             del lines[0], lines[0]
+            data.append(lines)
             os.remove(nnir_path+'tmp/'+wavpath.split('/')[-1].split('.')[0]+'.dat')
-            yield lines
+        return data
 
     def main(self):
         self.wav_to_dat()
-        gdata = self.clean_dat()
-        dtgl = []
-        for dtg in gdata:
-            dtgl.append(dtg)
-        self.meta_writer(dtgl)
+        data = self.clean_dat()
+        # mtdata = []
+        # for dt in data:
+        #     mtdata += dt
+        odata = sic.snd_itcl(data)
+        self.meta_writer(odata)
+
         pman = np.PathManager()
         pman.cpaths()
 
-        return gdata
+        return odata
