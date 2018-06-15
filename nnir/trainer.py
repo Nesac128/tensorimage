@@ -151,6 +151,6 @@ class Train:
         self.Meta.write(trained_full_model_path=self.model_store_path+self.model_fname)
 
     def write_labels(self):
-        with open(self.model_store_path+'training_labels.txt', 'w') as lbfile:
+        with open(external_working_directory_path+self.model_store_path+'training_labels.txt', 'w') as lbfile:
             for label in labels:
                 lbfile.write(label + '\n')

@@ -1,7 +1,7 @@
 import os
 import csv
 
-from config import nnir_path
+from config import *
 
 
 class Sess:
