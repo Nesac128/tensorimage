@@ -54,10 +54,11 @@ class ImageLoader:
                 if n_image > f[0]:
                     break
                 else:
-                    for x, y in zip(range(self.get_dims()[n_image][0]), range(self.get_dims()[n_image][1])):
-                        rgb_sum = pixels[x, y][0] + pixels[x, y][1] + pixels[x, y][2]
-                        rgb_avr = rgb_sum / 3
-                        im_pixels.append(rgb_avr)
+                    for x in range(self.get_dims()[n_image][0]):
+                        for y in range(self.get_dims()[n_image][1]):
+                            rgb_sum = pixels[x, y][0] + pixels[x, y][1] + pixels[x, y][2]
+                            rgb_avr = rgb_sum / 3
+                            im_pixels.append(rgb_avr)
             self.pixels.append(im_pixels)
         print("Finished mean_pixels ...")
         time.sleep(3)
@@ -90,7 +91,7 @@ class ImageLoader:
 
         pman = PathManager()
         pman.cpaths()
-
+        print(len(data[0]))
         return data
 
     def getRGB(self):

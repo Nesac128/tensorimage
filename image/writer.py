@@ -1,3 +1,5 @@
+from numpy import unique
+
 from exceptions import *
 from nnir.pcontrol import *
 from config import external_working_directory_path
@@ -38,23 +40,11 @@ class TrainDataWriter:
         self.labels = self.Reader.clean_read()
 
     def clabels(self):
-        unique_labels = []
-        for c, label in enumerate(self.labels):
-            print(unique_labels)
-            if c == 0:
-                unique_labels.append(label)
-            else:
-                unique_labels.append(label)
-                if unique_labels[c-1] == unique_labels[c]:
-                    del unique_labels[c]
-                else:
-                    continue
-
-        return str(len(unique_labels))
+        return str(len(unique(self.labels)))
 
     def ccolumns(self):
-        Freader = Reader(self.fname)
-        data = Freader.clean_read()
+        file_reader = Reader(external_working_directory_path+self.fname)
+        data = file_reader.clean_read()
         hist = []
         for invn, inv in enumerate(data):
             hist.append(inv)
@@ -79,7 +69,7 @@ class TrainDataWriter:
             writer.writerow(img)
 
     def metaWriter(self, tags):
-        self.Meta.write(data_path=os.getcwd() + '/' + self.fname)
+        self.Meta.write(data_path=external_working_directory_path + '/' + self.fname)
         self.Meta.write(n_classes=self.clabels())
         self.Meta.write(trainable='True')
         for tag in list(tags.items()):
