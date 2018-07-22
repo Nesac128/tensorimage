@@ -1,5 +1,6 @@
 import os
 import csv
+import pandas as pd
 
 from config import *
 
@@ -48,8 +49,10 @@ class Reader:
 
     def read_raw(self):
         if self.format == 'csv':
-            csvfile = open(self.file, 'r')
-            return csv.reader(csvfile)
+            df = pd.read_csv(self.file, header=None)
+            data = df[df.columns[0:-1]].values
+
+            return data
 
         elif self.format == 'txt':
             txtfile = open(self.file, 'r')
