@@ -27,11 +27,13 @@ class Predict:
         self.raw_predictions = []
         self.predictions = []
         self.Meta = MetaData(sess_id)
-        raw_meta = self.Meta.read('data_path', sess_id=sess_id)
+        raw_meta = self.Meta.read('data_path', 'type', sess_id=sess_id)
 
         meta = [mt for mt in raw_meta]
 
         self.Reader = Reader(meta[0])
+
+        self.type = meta[1]
 
         self.pfnames = [self.prediction_fname+'.csv', self.prediction_fname+'_pfile.csv']
 
@@ -78,19 +80,18 @@ class Predict:
 
         model = multilayer_perceptron(x, weights, biases)
 
-        prediction = sess.run(model, feed_dict={x: self.Reader.clean_read()})
+        prediction = sess.run(model, feed_dict={x: self.Reader.read_raw()})
         print(prediction)
+        print(prediction.shape)
 
-        pred_labels_int = np.ndarray.tolist(sess.run(tf.argmax(prediction, axis=1)))
+        pred_labels_int = np.ndarray.tolist(sess.run(tf.argmax(prediction, 1)))
         self.raw_predictions = pred_labels_int
 
         self.int_to_label()
-        print(self.predictions)
         self.write_predictions()
 
     def int_to_label(self):
         assigned_labels = self.label_assigner()
-        print(assigned_labels)
 
         for raw_prediction in self.raw_predictions:
             for pred_char, pred_int in assigned_labels.items():
@@ -101,10 +102,9 @@ class Predict:
 
     def write_predictions(self):
         # Re-write data in addition to predicted labels in CSV file; filename is a parameter
-        data = self.Reader.clean_read()
-        print(len(data))
-        print(self.predictions)
-        print(self.raw_predictions)
+        data = list(self.Reader.read_raw())
+        data = [list(dt) for dt in data]
+
         for pix_data_n in range(len(data)):
             data[pix_data_n].append(self.predictions[pix_data_n])
 
@@ -113,31 +113,32 @@ class Predict:
             for im_pix_data in data:
                 writer.writerow(im_pix_data)
 
-        # Write image paths together with predicted labels in CSV file
-        raw_meta = self.Meta.read('data_path', sess_id=self.id)
+        if self.type in path_prediction_types:
+            # Write image paths together with predicted labels in CSV file
+            raw_meta = self.Meta.read('data_path', sess_id=self.id)
 
-        meta = [mt for mt in raw_meta]
+            meta = [mt for mt in raw_meta]
 
-        df = pd.read_csv(meta[0], header=None)
+            df = pd.read_csv(meta[0], header=None)
 
-        raw_rows = df.iterrows()
-        rows = []
-        for index, row in raw_rows:
-            rows.append(list(row.values))
+            raw_rows = df.iterrows()
+            rows = []
+            for index, row in raw_rows:
+                rows.append(list(row.values))
 
-        df = pd.read_csv('meta/sess/'+str(self.id)+'/impaths.csv', header=None)
+            df = pd.read_csv('meta/sess/'+str(self.id)+'/impaths.csv', header=None)
 
-        raw_rows = df.iterrows()
-        paths = []
-        for _, row in raw_rows:
-            paths.append(list(row)[0])
+            raw_rows = df.iterrows()
+            paths = []
+            for _, row in raw_rows:
+                paths.append(list(row)[0])
 
-        with open(external_working_directory_path+self.pfnames[1], 'w') as pathfile:
-            writer = csv.writer(pathfile, delimiter=',')
-            for n in range(len(paths)):
-                if self.show_im is True:
-                    display_image(self.predictions[n], paths[n])
-                writer.writerow([paths[n], self.predictions[n]])
+            with open(external_working_directory_path+self.pfnames[1], 'w') as pathfile:
+                writer = csv.writer(pathfile, delimiter=',')
+                for n in range(len(paths)):
+                    if self.show_im is True:
+                        display_image(self.predictions[n], paths[n])
+                    writer.writerow([paths[n], self.predictions[n]])
 
     def main(self):
         self.predict()
