@@ -8,6 +8,7 @@ import sound.loader as sl
 import sound.writer as sw
 import man.label_path_writer as mlpw
 
+
 class Config:
     def __init__(self):
         with open('tmp/opt') as temp:
@@ -18,42 +19,42 @@ config = Config()
 
 if config.opt == 'train':
     @click.command()
-    @click.option('--sess_id', required=True, help='Integer indicating metadata values to use')
-    @click.option('--model_store_path', required=True, help='Path where to store trained model')
-    @click.option('--model_name', required=True, help='Trained model name')
-    @click.option('--n_perceptrons_per_layer', default=(100, 51, 51, 51), help='Tuple containing number of perceptrons per hidden layer')
-    @click.option('--optimizer', default='GradientDescent', help='Optimizer type')
-    @click.option('--epochs', default=150, help='Number of training epochs')
-    @click.option('--learning_rate', default=0.2, help='Learning rate for optimizer')
-    @click.option('--train_test_split', default=0.1)
-    def train(sess_id: int, model_store_path: str, model_name: str, n_perceptrons_per_layer: tuple,
-              optimizer: str, epochs: int, learning_rate: float, train_test_split: float):
-        trainer = nt.Train(sess_id, model_store_path, model_name,
+    @click.argument('sess_id', required=True)
+    @click.argument('trained_model_path', required=True)
+    @click.argument('trained_model_name', required=True)
+    @click.argument('n_perceptrons_per_layer', default=(100, 51, 51, 51))
+    @click.argument('optimizer', default='GradientDescent')
+    @click.argument('n_epochs', default=150)
+    @click.argument('learning_rate', default=0.2)
+    @click.argument('train_test_split', default=0.1)
+    def train(sess_id: int, trained_model_path: str, trained_model_name: str, n_perceptrons_per_layer: tuple,
+              optimizer: str, n_epochs: int, learning_rate: float, train_test_split: float):
+        trainer = nt.Train(sess_id, trained_model_path, trained_model_name,
                            optimizer=optimizer, n_perceptrons_layer=n_perceptrons_per_layer,
-                           epochs=epochs, learning_rate=learning_rate, train_test_split=train_test_split)
+                           epochs=n_epochs, learning_rate=learning_rate, train_test_split=train_test_split)
         trainer.train()
     train()
 
-elif config.opt == 'im_man_1':
+elif config.opt == 'im_man1':
     @click.command()
-    # @click.option('--im1_path_to_path_file', required=True)
-    @click.option('--im1_method', help='Method by which to extract pixel values')
-    @click.option('--im1_file_name', required=True, help='File name for training data CSV file')
-    @click.option('--im_label_file_path', required=True, help='Path to text file containing labels')
-    def im_man_1(path_to_path_file: str, method: str, file_name: str, label_file_path: str):
-        loader = iml.ImageLoader(path_to_path_file, method=method)
+    @click.argument('path_file_path', required=True)
+    @click.argument('method', required=True)
+    @click.argument('file_name', required=True)
+    @click.argument('label_file_path', required=True)
+    def im_man_1(path_file_path: str, method: str, file_name: str, label_file_path: str):
+        loader = iml.ImageLoader(path_file_path, method=method)
         data = loader.main()
         writer = iw.TrainDataWriter(data, file_name, label_file_path)
         writer.main()
     im_man_1()
 
-elif config.opt == 'im_man_2':
+elif config.opt == 'im_man2':
     @click.command()
-    # @click.option('--im2_path_to_path_file', required=True)
-    @click.option('--im2_method', required=True, help='Method by which to extract pixel values')
-    @click.option('--im2_file_name', required=True, help='File name for training data CSV file')
-    def im_man_2(path_to_path_file: str, method: str, file_name: str):
-        loader = iml.ImageLoader(path_to_path_file, method=method)
+    @click.argument('path_file_path', required=True)
+    @click.argument('method', required=True)
+    @click.argument('file_name', required=True)
+    def im_man_2(path_file_path: str, method: str, file_name: str):
+        loader = iml.ImageLoader(path_file_path, method=method)
         data = loader.main()
         writer = iw.DataWriter(data, file_name)
         writer.main()
