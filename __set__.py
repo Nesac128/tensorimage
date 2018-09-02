@@ -4,7 +4,7 @@ import tempfile
 
 
 @click.command()
-@click.option('--set', required=True, help='Set operation: training, classifying, im_man')
+@click.argument('set', required=True)
 def main(set):
     with tempfile.NamedTemporaryFile(dir='tmp/', delete=False) as temp:
         temp.write(bytes(set, 'ascii'))
