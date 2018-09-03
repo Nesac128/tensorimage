@@ -1,0 +1,2 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets//media/planetgazer8360/NASER/External Tensorflow workspace/datasets/Fruits360/paths.txt/paths.txt
+N_COLUMNS=300

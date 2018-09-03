@@ -1,0 +1,2 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALP/paths.txt
+N_COLUMNS=30000

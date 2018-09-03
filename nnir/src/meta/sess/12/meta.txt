@@ -1,0 +1,6 @@
+PATH_FILE=spaths.txt
+N_COLUMNS=2
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace//data/training/HB_sound/hello_goodbye
+N_CLASSES=0
+TRAINABLE=True
+TYPE=Sound

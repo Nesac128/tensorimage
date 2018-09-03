@@ -1,0 +1,7 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/spaths2.txt
+N_COLUMNS=35996
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/HB_sound/unclassified.csv
+N_CLASSES=0
+TRAINABLE=False
+TYPE=Sound
+USED_MODEL_PATH__OUTPUT=HB_SOUND_MODEL/test-150___/home/planetgazer8360/PycharmProjects/nnir/predictions.csv__/home/planetgazer8360/PycharmProjects/nnir/predictions_pfile.csv

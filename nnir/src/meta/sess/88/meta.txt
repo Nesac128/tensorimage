@@ -1,0 +1,6 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALP-RES-P/paths.txt
+N_COLUMNS=921600
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace//data/training/ALP-RESP/data.csv
+N_CLASSES=0
+TRAINABLE=False
+TYPE=Image

@@ -1,0 +1,8 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALP/paths.txt
+N_COLUMNS=30000
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/ALP/training_data.csv
+N_CLASSES=30000
+TRAINABLE=True
+TYPE=image_gen
+DATA_LEN=2
+LBS_LEN=30000

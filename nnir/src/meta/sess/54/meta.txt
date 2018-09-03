@@ -1,0 +1,6 @@
+PATH_FILE=/home/planetgazer8360/Desktop/paths.txt
+N_COLUMNS=30000
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/fruits.csv
+N_CLASSES=0
+TRAINABLE=False
+TYPE=Image

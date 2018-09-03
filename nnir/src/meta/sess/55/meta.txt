@@ -1,0 +1,2 @@
+PATH_FILE=ALP/paths.txt
+N_COLUMNS=30000

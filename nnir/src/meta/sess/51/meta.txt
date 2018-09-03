@@ -1,0 +1,12 @@
+PATH_FILE=/home/planetgazer8360/Desktop/test.txt
+N_COLUMNS=2
+DATA_PATH=/home/planetgazer8360/Desktop/primes.csv
+N_CLASSES=2
+TRAINABLE=True
+TYPE=Raw
+TRAINED_FULL_MODEL_PATH=trained_models/PrimeNumbers0
+TRAINED_FULL_MODEL_PATH=trained_models/PrimeNumbers/0
+TRAINED_FULL_MODEL_PATH=trained_models/primesn/test0
+TRAINED_FULL_MODEL_PATH=trained_models/Primes/0
+TRAINED_FULL_MODEL_PATH=trained_models/Primes2/0
+TRAINED_FULL_MODEL_PATH=trained_models/Primes3/0

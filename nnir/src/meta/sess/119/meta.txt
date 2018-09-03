@@ -1,0 +1,8 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALPRES/paths.txt
+N_COLUMNS=300
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/ALPRES/data.csv
+N_CLASSES=0
+TRAINABLE=False
+TYPE=Image
+USED_MODEL_PATH__OUTPUT=/media/planetgazer8360/NASER/External Tensorflow workspace/trained_models/Fruits3602CNN4/___/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALPRES/Fruits3602/prediction.csv__/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALPRES/Fruits3602/prediction_pathfile.csv
+USED_MODEL_PATH__OUTPUT=/media/planetgazer8360/NASER/External Tensorflow workspace/trained_models/Fruits3602CNN8/___/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALPRES/Fruits3602/predictions.csv__/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALPRES/Fruits3602/predictions_pathfile.csv

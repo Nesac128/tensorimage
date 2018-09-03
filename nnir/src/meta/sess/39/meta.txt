@@ -1,0 +1,17 @@
+PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ApplesLemonsPears/paths.txt
+N_COLUMNS=30000
+DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/alp-test.csv
+N_CLASSES=3
+TRAINABLE=True
+TRAINED_FULL_MODEL_PATH=trained_models/TEST-ALP/test
+TRAINED_FULL_MODEL_PATH=trained_models/TEST2-ALP/test2
+TRAINED_FULL_MODEL_PATH=trained_models/TEST3-ALP/test3
+TRAINED_FULL_MODEL_PATH=trained_models/TEST4-ALP/test4
+TRAINED_FULL_MODEL_PATH=trained_models/TEST5-ALP/test5
+TRAINED_FULL_MODEL_PATH=trained_models/TEST6-ALP/test6
+TRAINED_FULL_MODEL_PATH=trained_models/TEST7-ALP/test7
+TRAINED_FULL_MODEL_PATH=trained_models/TEST8-ALP/test8
+TRAINED_FULL_MODEL_PATH=trained_models/TEST9-ALP/test9
+TRAINED_FULL_MODEL_PATH=trained_models/TEST11-ALP/test11
+TRAINED_FULL_MODEL_PATH=trained_models/TEST10-ALP/test10
+TRAINED_FULL_MODEL_PATH=trained_models/fruits/test0
