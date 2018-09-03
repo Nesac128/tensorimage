@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='nnir',
-    version='0.0.1',
+    version='1.0.0',
     description='Python package to train neural networks to classify data',
     long_description=long_description,
     author='PlanetGazer8360',

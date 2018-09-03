@@ -1,13 +1,11 @@
 import tensorflow as tf
-import pandas as pd
 import numpy as np
 import json
 
 from nnir.pcontrol import *
 from config import *
 
-from scripts.multilayer_perceptron import multilayer_perceptron
-from scripts.convolutional_neural_network import convolutional_neural_network
+from neural_network_models.convolutional_neural_network import convolutional_neural_network
 
 from image.display import display_image
 

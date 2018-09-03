@@ -1,6 +1,5 @@
 import tensorflow as tf
 import numpy as np
-import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
@@ -11,8 +10,8 @@ from nnir.pcontrol import *
 from config import external_working_directory_path
 from exceptions import *
 
-from scripts.multilayer_perceptron import multilayer_perceptron
-from scripts.convolutional_neural_network import convolutional_neural_network
+from neural_network_models.multilayer_perceptron import multilayer_perceptron
+from neural_network_models.convolutional_neural_network import convolutional_neural_network
 
 
 class Train:
@@ -88,11 +87,10 @@ class Train:
         X, Y = self.read_dataset()
 
         X, Y = shuffle(X, Y, random_state=1)
-        # X = tf.divide(X,255)
         train_x, test_x, train_y, test_y = train_test_split(X, Y, test_size=self.train_test_split, random_state=415)
 
         if self.training_type == 'conv':
-            train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], 58, 10, 3]))
+            train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], 10, 10, 3]))
             test_x = sess.run(tf.reshape(test_x, shape=[test_x.shape[0], 10, 10, 3]))
 
             # train_x, train_y = self.augment_data(train_x, train_y)
@@ -154,7 +152,6 @@ class Train:
         saver = tf.train.Saver()
 
         model = None
-        keep_prob = None
         x = None
         if self.training_type == 'fcl':
             x = tf.placeholder(tf.float32, [None, sess.run(n_dim)], name='x')
@@ -167,7 +164,6 @@ class Train:
 
         labels = tf.placeholder(tf.float32, [None, self.n_classes])
 
-        # cost_function = tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(logits=model, labels=labels))
         cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
             logits=model, labels=labels)) +
                 0.01 * tf.nn.l2_loss(weights['conv_weights1']) +
@@ -216,10 +212,6 @@ class Train:
                     ax.plot(plot_epoch, testing_loss_history, 'C2', label='Testing cost')
                     ax.legend()
                     plt.show()
-                    # plt.plot(plot_epoch, training_accuracy_history, label='Training accuracy')
-                    # plt.plot(plot_epoch, testing_accuracy_history, label='Testing accuracy')
-                    # plt.show()
-                    # plt.plot(plot_epoch, t)
 
             plot_epoch.append(epoch)
 

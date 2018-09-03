@@ -1,14 +1,10 @@
 import click
 
-import nnir.training.trainer as nt
+import nnir.trainer as nt
 import nnir.classifier as nc
 import image.loader as iml
 import image.writer as iw
-import sound.loader as sl
-import sound.writer as sw
 import man.label_path_writer as mlpw
-
-from config import *
 
 
 class Config:
@@ -49,64 +45,17 @@ elif config.opt == 'im_man1':
         writer.main()
     im_man_1()
 
-elif config.opt == "im_man2":
+elif config.opt == 'im_man2':
     @click.command()
     @click.argument('dataset_name', required=True)
     @click.argument('method', required=True)
     @click.argument('file_name', required=True)
     def im_man_2(dataset_name: str, method: str, file_name: str):
-        loader = iml.ImageLoader(external_working_directory_path+'datasets/'+dataset_name+'/paths.txt', method=method)
-        data = loader.main()
-        writer = iw.TrainingDataGenWriter(dataset_name, file_name, data)
-        writer.main()
-    im_man_2()
-
-elif config.opt == 'im_man3':
-    @click.command()
-    @click.argument('dataset_name', required=True)
-    @click.argument('method', required=True)
-    @click.argument('file_name', required=True)
-    def im_man_3(dataset_name: str, method: str, file_name: str):
         loader = iml.ImageLoader(dataset_name, method=method)
         data = loader.main()
         writer = iw.DataWriter(data, file_name, dataset_name)
         writer.main()
-    im_man_3()
-
-# elif config.opt == 'im_man4':
-#     @click.command()
-#     @click.argument('path_file_path', required=True)
-#     @click.argument('file_name', required=True)
-#     @click.argument('label_file_path', required=True)
-#     def im_man_4(path_file_path: str, file_name: str, label_file_path: str):
-#         loader = iml.ConvNetsImageLoader(path_file_path)
-#         data = loader.main()
-#         writer = iw.TrainingDataWriter(data, file_name, label_file_path)
-#         writer.main()
-#     im_man_4()
-
-elif config.opt == 'snd_man_1':
-    @click.command()
-    @click.argument('path_file_path')
-    @click.argument('file_name')
-    def snd_man_1(path_file_path, file_name):
-        loader = sl.Loader(path_file_path)
-        data = loader.main()
-        writer = sw.DataWriter(data, file_name)
-        writer.main()
-    snd_man_1()
-
-elif config.opt == 'snd_man_2':
-    @click.command()
-    @click.argument('path_file_path')
-    @click.argument('label_file_path')
-    @click.argument('file_name')
-    def snd_man_2(path_file_path: str, label_file_path: str, file_name: str):
-        loader = sl.Loader(path_file_path)
-        data = loader.main()
-        writer = sw.TrainDataWriter(data, file_name, label_file_path)
-        writer.main()
-    snd_man_2()
+    im_man_2()
 
 elif config.opt == 'classify':
     @click.command()
