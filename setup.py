@@ -15,7 +15,8 @@ setup(
     install_requires=['tensorflow==1.9.0', 'Pillow==5.1.0',
                       'scikit-learn==0.19.1', 'numpy==1.14.5',
                       'opencv-python==3.4.0.12', 'pandas==0.22.0',
-                      'click==6.7', 'pydub==0.22.0', 'sox==1.3.3'],
+                      'click==6.7', 'pydub==0.22.0', 'sox==1.3.3',
+                      'scipy', 'png'],
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

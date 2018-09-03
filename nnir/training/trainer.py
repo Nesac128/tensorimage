@@ -92,7 +92,7 @@ class Train:
         train_x, test_x, train_y, test_y = train_test_split(X, Y, test_size=self.train_test_split, random_state=415)
 
         if self.training_type == 'conv':
-            train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], 10, 10, 3]))
+            train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], 58, 10, 3]))
             test_x = sess.run(tf.reshape(test_x, shape=[test_x.shape[0], 10, 10, 3]))
 
             # train_x, train_y = self.augment_data(train_x, train_y)
