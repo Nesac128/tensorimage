@@ -55,4 +55,5 @@ You can either use your own image dataset or download one from the internet, fro
 Once you have executed all of the above, 3 files should have been created: 
 - __your_workspace_folder_path/datasets/your_dataset_name/paths.txt__ containing the paths for all the images
 - __your_workspace_folder_path/datasets/your_dataset_name/labels.txt__ containing the labels for all the images
-- __your_workspace_folder_path/datasets/your_dataset_name/obj_labels.json__ containing the correspondence of program-generated labels and the names of each class.
+- __your_workspace_folder_path/datasets/your_dataset_name/obj_labels.json__ containing the correspondence of program-generated labels and the names of each class. (Alphabetically ordered program-generated labels are used for the training process, instead of the class name, because it facilitates __nnir__ the process of matching the final numerical prediction to a label)
+
