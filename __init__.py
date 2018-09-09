@@ -1,5 +1,5 @@
 import os
-from config import external_working_directory_path
+from nnir.src.config import external_working_directory_path
 
 if not os.path.exists(external_working_directory_path):
     os.mkdir(external_working_directory_path)
