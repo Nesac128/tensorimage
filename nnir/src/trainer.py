@@ -6,12 +6,11 @@ from sklearn.model_selection import train_test_split
 from matplotlib import style
 import matplotlib.pyplot as plt
 
-from nnir.src.pcontrol import *
-from config import external_working_directory_path
-from exceptions import *
+from src.pcontrol import *
+from src.config import external_working_directory_path
+from src.exceptions import *
 
-from nnir.src.neural_network_models.multilayer_perceptron import multilayer_perceptron
-from nnir.src.neural_network_models.convolutional_neural_network import convolutional_neural_network
+from src.neural_network_models.convolutional_neural_network import convolutional_neural_network
 
 
 class Train:
@@ -20,10 +19,11 @@ class Train:
                  model_store_path,
                  model_name,
                  optimizer='GradientDescent',
-                 n_perceptrons_layer: tuple = (100, 100, 100, 100),
+                 display_frequency: int=50,
                  epochs: int = 150,
                  learning_rate: float = 0.2,
-                 train_test_split: float = 0.3,):
+                 train_test_split: float = 0.3,
+                 l2_regularization_beta=0.01):
         self.labels = []
 
         # Store parameter inputs
@@ -31,10 +31,11 @@ class Train:
         self.model_store_path = model_store_path
         self.model_name = model_name
         self.optimizer = optimizer
-        self.n_perceptrons_layer = n_perceptrons_layer
+        self.display_frequency = display_frequency
         self.epochs = epochs
         self.learning_rate = learning_rate
         self.train_test_split = train_test_split
+        self.l2_reg_beta = l2_regularization_beta
 
         self.Meta = MetaData()
         raw_meta = self.Meta.read('data_path', 'n_columns', 'n_classes', 'trainable',  'data_len',
@@ -88,7 +89,7 @@ class Train:
         weights = {'conv_weights1': tf.Variable(tf.random_normal([3, 3, 3, 3]), name='conv_weights1'),
                    'conv_weights2': tf.Variable(tf.random_normal([3, 3, 3, 1]), name='conv_weights2'),
 
-                   'fcl_weights3': tf.Variable(tf.random_normal([100, 1024]), name='fcl_weights3'),
+                   'fcl_weights3': tf.Variable(tf.random_normal([self.height*self.width, 1024]), name='fcl_weights3'),
                    'out_weights4': tf.Variable(tf.random_normal([1024, self.n_classes]), name='out_weights4')
                    }
         biases = {'conv_biases1': tf.Variable(tf.random_normal([3]), name='conv_biases1'),
@@ -109,28 +110,29 @@ class Train:
         train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], self.height, self.width, 3]))
         test_x = sess.run(tf.reshape(test_x, shape=[test_x.shape[0], self.height, self.width, 3]))
 
-        weights, biases = self.gen_weights_biases()
+        # train_x, train_y = sess.run(self.augment_data(train_x, train_y))
+        # test_x, test_y = sess.run(self.augment_data(test_x, test_y))
 
-        saver = tf.train.Saver()
+        weights, biases = self.gen_weights_biases()
 
         x = tf.placeholder(tf.float32, [None, self.height, self.width, 3], name='x')
         print(x.shape)
 
         sess.run(tf.global_variables_initializer())
-        model = convolutional_neural_network(x, weights, biases)
+        model = convolutional_neural_network(x, weights, biases, self.height*self.width)
 
         labels = tf.placeholder(tf.float32, [None, self.n_classes])
 
         cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits(
             logits=model, labels=labels)) +
-                         0.01 * tf.nn.l2_loss(weights['conv_weights1']) +
-                         0.01 * tf.nn.l2_loss(biases['conv_biases1']) +
-                         0.01 * tf.nn.l2_loss(weights['conv_weights2']) +
-                         0.01 * tf.nn.l2_loss(biases['conv_biases2']) +
-                         0.01 * tf.nn.l2_loss(weights['fcl_weights3']) +
-                         0.01 * tf.nn.l2_loss(biases['fcl_biases3']) +
-                         0.01 * tf.nn.l2_loss(weights['out_weights4']) +
-                         0.01 * tf.nn.l2_loss(biases['out_biases4']))
+                         self.l2_reg_beta * tf.nn.l2_loss(weights['conv_weights1']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(biases['conv_biases1']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(weights['conv_weights2']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(biases['conv_biases2']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(weights['fcl_weights3']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(biases['fcl_biases3']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(weights['out_weights4']) +
+                         self.l2_reg_beta * tf.nn.l2_loss(biases['out_biases4']))
 
         training_step = tf.train.GradientDescentOptimizer(self.learning_rate).minimize(cost_function)
 
@@ -138,7 +140,7 @@ class Train:
 
         for epoch in range(self.epochs):
             if epoch != 0:
-                if epoch % 50 == 0:
+                if epoch % self.display_frequency == 0:
                     self.display_progress()
             self.plot_epoch.append(epoch)
 
@@ -184,11 +186,15 @@ class Train:
         print("Calculating overall MSE (Mean Squared Error)...")
         print(sess.run(mse))
 
-        print("Storing model...")
-        saver.save(sess, external_working_directory_path + self.model_store_path + self.model_name)
-
+        self.store_model(sess)
         self.write_labels()
+
         self.Meta.write(self.wsid, trained_full_model_path=self.model_store_path + self.model_name)
+
+    def store_model(self, sess):
+        saver = tf.train.Saver()
+        print("Storing model...")
+        saver.save(sess, external_working_directory_path + 'trained_models/' + self.model_store_path + '/' + self.model_name)
 
     def display_progress(self):
         style.use('seaborn')
