@@ -3,7 +3,7 @@ import string
 from itertools import product
 import json
 
-from config import external_working_directory_path
+from src.config import external_working_directory_path
 
 
 def write_labels(main_directory_path, dataset_name, label_file_name='labels.txt'):
