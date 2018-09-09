@@ -1,8 +1,7 @@
 from PIL import Image
 
 import time
-from config import *
-from nnir.src.pcontrol import *
+from src.pcontrol import *
 
 
 class ImageLoader:

@@ -1,9 +1,9 @@
 import warnings
+import csv
 import os
 from numpy import unique
 
-from config import external_working_directory_path
-from nnir.src.pcontrol import *
+from src.pcontrol import *
 
 
 class DataWriter:
@@ -90,6 +90,6 @@ class TrainingDataWriter:
         self.Meta.write(self.wsid, n_classes=self.n_classes())
         self.Meta.write(self.wsid, trainable='True')
         self.Meta.write(self.wsid, type='Image')
-        self.Meta.write(self.wsid, data_len=str(len(self.input_data[0])-1))
-        self.Meta.write(Sess().read(), width=self.imsize[0])
-        self.Meta.write(Sess().read(), height=self.imsize[1])
+        self.Meta.write(self.wsid, data_len=str(len(self.input_data[0])))
+        self.Meta.write(self.wsid, width=self.imsize[0][0])
+        self.Meta.write(self.wsid, height=self.imsize[0][1])
