@@ -40,10 +40,9 @@ if config.opt == 'train':
 elif config.opt == 'im_man1':
     @click.command()
     @click.argument('dataset_name', required=True)
-    @click.argument('method', required=True)
     @click.argument('file_name', required=True)
-    def im_man_1(dataset_name, method: str, file_name: str):
-        loader = iml.ImageLoader(dataset_name, method=method)
+    def im_man_1(dataset_name, file_name: str):
+        loader = iml.ImageLoader(dataset_name)
         data, imsize = loader.main()
         writer = iw.TrainingDataWriter(data, file_name, dataset_name, imsize)
         writer.main()

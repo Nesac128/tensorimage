@@ -1,15 +1,12 @@
 from PIL import Image
 
-import time
 from src.pcontrol import *
 
 
 class ImageLoader:
     def __init__(self,
-                 dataset_name,
-                 method='non_mean_pixels'):
+                 dataset_name):
         self.dataset_name = dataset_name
-        self.method = method
 
         self.rgb_vals = []
         self.imgs = []
@@ -50,27 +47,6 @@ class ImageLoader:
             print(raw_pixels)
         return raw_pixels
 
-    def mean_pixels(self):
-        print("Began mean_pixels ...")
-        time.sleep(5)
-        for pixels in self.load_pixels():
-            im_pixels = []
-            f = []
-            for n_image in range(len(self.imgs)):
-                f.append(n_image)
-                if n_image > f[0]:
-                    break
-                else:
-                    for x in range(self.get_dims()[n_image][0]):
-                        for y in range(self.get_dims()[n_image][1]):
-                            rgb_sum = pixels[x, y][0] + pixels[x, y][1] + pixels[x, y][2]
-                            rgb_avr = rgb_sum / 3
-                            im_pixels.append(rgb_avr)
-            self.pixels.append(im_pixels)
-        print("Finished mean_pixels ...")
-        time.sleep(3)
-        return self.pixels
-
     def non_mean_pixels(self):
         ims_pixels = self.open_images()
         for pixels_n in range(len(ims_pixels)):
@@ -103,11 +79,7 @@ class ImageLoader:
 
     def getRGB(self):
         rgb_vals = []
-        pixels = ''
-        if self.method == 'mean_pixels':
-            pixels = self.mean_pixels()
-        elif self.method == 'non_mean_pixels':
-            pixels = self.non_mean_pixels()
+        pixels = self.non_mean_pixels()
         for n, im_pixels in enumerate(pixels):
             print("Reading image ", n, " out of ", len(pixels))
             rgb_vals.append(im_pixels)
