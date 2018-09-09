@@ -3,9 +3,9 @@ __nnir__ is a Python tool which uses machine-learning, and the [Tensorflow libra
 
 # Necessary preparations before using the tool
 1. Extract the package after downloading, if necessary
-2. Open terminal and access the main directory (nnir/), run 'python3 setup.py' __Do not close the terminal__
+2. Open terminal and access the main directory (nnir/), run __python3 setup.py__ from the main repository folder, __nnir/__ __Do not close the terminal__
 3. Access config.py and modify the external_working_directory_path to a path where your workspace will be located. The workspace folder will later be created automatically
-4. Run 'python3 \__init__.py'
+4. Run __python3 \__init__.py
  
  # Documentation
  ## 1. Preparing a dataset
@@ -44,3 +44,16 @@ You can either use your own image dataset or download one from the internet, fro
 ![training_example_image](https://nesac128.github.io/nnir_readme_images/training_ex.jpg)
 ![cost_example_image](https://nesac128.github.io/nnir_readme_images/cost_ex.jpg)
 ![accuracy_example_image](https://nesac128.github.io/nnir_readme_images/accuracy_ex.jpg)
+
+### 1. Writing paths and labels for images
+#### From the main repository folder __nnir__:
+- __python3 src/user/set.py write_paths__
+- __python3 src/user/main.py training_images/your_dataset_name your_dataset_name__
+- __python3 src/user/set.py write_labels__
+- __python3 src/user/main.py training_images/your_dataset_name your_dataset_name__ again
+
+Once you have executed all of the above, 3 files should have been created: 
+- __your_workspace_folder_path/datasets/your_dataset_name/paths.txt__ containing the paths for all the images
+- __your_workspace_folder_path/datasets/your_dataset_name/labels.txt__ containing the labels for all the images
+- __your_workspace_folder_path/datasets/your_dataset_name/obj_labels.json__ containing the correspondence of program-generated labels and the names of each class. (Alphabetically ordered program-generated labels are used for the training process, instead of the class name, because it facilitates __nnir__ the process of matching the final numerical prediction to a label)
+
