@@ -2,12 +2,12 @@ import tensorflow as tf
 import numpy as np
 import json
 
-from nnir.src.pcontrol import *
-from config import *
+from src.pcontrol import *
+from src.config import *
 
-from nnir.src.neural_network_models.convolutional_neural_network import convolutional_neural_network
+from src.neural_network_models.convolutional_neural_network import convolutional_neural_network
 
-from nnir.src.image.display import display_image
+from src.image.display import display_image
 
 
 class Predict:
