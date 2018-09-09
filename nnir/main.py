@@ -24,14 +24,14 @@ if config.opt == 'train':
     @click.argument('trained_model_name', required=True)
     @click.option('--display_frequency', default=50)
     @click.option('--optimizer', default='GradientDescent')
-    @click.option('--n_epochs', default=150)
-    @click.option('--learning_rate', default=0.2)
+    @click.option('--n_epochs', default=600)
+    @click.option('--learning_rate', default=0.00000008)
     @click.option('--train_test_split', default=0.1)
     @click.option('--l2_regularization_beta', default=0.01)
     def train(sess_id: int, trained_model_path: str, trained_model_name: str, display_frequency: int,
               optimizer: str, n_epochs: int, learning_rate: float, train_test_split: float, l2_regularization_beta: float):
         trainer = nt.Train(sess_id, trained_model_path, trained_model_name,
-                           optimizer=optimizer, display_frequency=display_frequency,
+                           optimizer=optimizer, display_frequency=display_frequency ,
                            epochs=n_epochs, learning_rate=learning_rate, train_test_split=train_test_split,
                            l2_regularization_beta=l2_regularization_beta)
         trainer.train_convolutional()
