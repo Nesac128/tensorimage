@@ -2,6 +2,7 @@ import warnings
 import csv
 import os
 from numpy import unique
+from progress import bar
 
 from src.pcontrol import *
 
@@ -72,11 +73,12 @@ class TrainingDataWriter:
 
     def main(self):
         self.metaWriter()
+        writing_progress = bar.Bar("Writing images: ", max=len(self.input_data))
         for imn in range(len(self.input_data)):
-            print("Writing image number ", imn, " out of ", len(self.input_data), " images")
             self.input_data[imn].append(self.labels[imn])
             self.writeCSV(self.input_data[imn])
-        self.verify_dimensions()
+            writing_progress.next()
+        print("")
 
     def writeCSV(self, img):
         with open(external_working_directory_path+'data/training/'+self.dataset_name+'/'+self.filename, 'a') as csvfile:
@@ -91,5 +93,5 @@ class TrainingDataWriter:
         self.Meta.write(self.wsid, trainable='True')
         self.Meta.write(self.wsid, type='Image')
         self.Meta.write(self.wsid, data_len=str(len(self.input_data[0])))
-        self.Meta.write(self.wsid, width=self.imsize[0][0])
-        self.Meta.write(self.wsid, height=self.imsize[0][1])
+        self.Meta.write(self.wsid, width=self.imsize[0])
+        self.Meta.write(self.wsid, height=self.imsize[1])
