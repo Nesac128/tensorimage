@@ -1,4 +1,5 @@
 import csv
+import json
 import pandas as pd
 import os
 
@@ -23,14 +24,33 @@ class Sess:
 
 
 class MetaData:
-    def __init__(self):
-        pass
+    def __init__(self, reader_sess_id: int=None):
+        self.wsessid = Sess().read()
+        self.rsessid = reader_sess_id
+
+        self.new_metadata = {self.wsessid: {}}
+
+    def add(self, **meta):
+        keys = [key for key in meta]
+        values = [val for val in meta.values()]
+
+        for n in range(len(meta)):
+            self.new_metadata[self.wsessid][keys[n]] = values[n]
+
+    def write_json(self):
+        with open(nnir_path+'nnir/src/meta/meta.json', 'a') as metafile:
+            json.dump(self.new_metadata, metafile)
+
+    def read_json(self, *keys):
+        with open(nnir_path+'nnir/src/meta/meta.json', 'r') as metafile:
+            data = json.load(metafile)
+        for key in keys:
+            yield data[self.wsessid][key]
 
     def write(self, write_sess_id, **meta):
         with open(nnir_path+'nnir/src/meta/sess/'+write_sess_id+'/meta.txt', 'a') as metadata:
             for key in meta:
                 for val in meta.values():
-                    print(val)
                     metadata.write(str(key.upper()+'='+str(val)+'\n'))
 
     def read(self, *tags, sess_id):
