@@ -2,6 +2,10 @@ from PIL import Image
 from progress import bar
 
 from src.pcontrol import *
+from src.man.writer import *
+from src.man.reader import *
+from src.meta.id import ID
+from src.config import *
 
 
 class ImageLoader:
@@ -13,18 +17,19 @@ class ImageLoader:
         self.imsize = []
 
         self.path_file = external_working_directory_path+'datasets/'+dataset_name+'/paths.txt'
-        reader = Reader(self.path_file)
-        self.paths = reader.clean_read()
+        reader = TXTReader(self.path_file)
+        reader.read_raw()
+        reader.parse()
+        self.paths = reader.parsed_data
 
         self.n_images = len(self.paths)
 
         self.pixels = []
 
-        self.Meta = MetaData()
+        self.id_man = ID('dataset')
+        self.id_man.read()
 
-        self.sess = Sess()
-        self.sess.add()
-        self.sess.ndir()
+        self.MetaWriter = JSONWriter(self.id_man.id, dataset_metafile_path)
 
     def non_mean_pixels(self):
         dimensions = self.get_dims()
@@ -58,10 +63,10 @@ class ImageLoader:
         self.getRGB()
         data = self.rgb_vals
 
-        self.Meta.write(self.sess.read(), path_file=self.path_file)
-        pman = PathManager()
-        pman.cpaths()
-        return data, self.imsize
+        self.MetaWriter.update(path_file=self.path_file)
+        self.MetaWriter.write()
+
+        return data, self.imsize, self.MetaWriter
 
     def getRGB(self):
         rgb_vals = []
@@ -71,4 +76,3 @@ class ImageLoader:
             rgb_vals.append(im_pixels)
             self.rgb_vals.append(im_pixels)
             reading_progress.next()
-        return True
