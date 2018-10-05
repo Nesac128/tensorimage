@@ -1,11 +1,13 @@
 import tensorflow as tf
 import numpy as np
 import json
+import csv
+import os
 
 from src.pcontrol import *
 from src.config import *
 
-from src.neural_network_models.convolutional_neural_network import convolutional_neural_network
+from src.neural_network_models.convolutional.convolutional_neural_network import convolutional_neural_network
 
 from src.image.display import display_image
 
