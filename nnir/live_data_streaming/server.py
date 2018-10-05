@@ -6,17 +6,25 @@ from threading import Thread
 
 
 _data = None
+_time = None
+
+
+def update_data(**data):
+    global _data
+    _data = data
+
+
+def update_time(time):
+    global _time
+    _time = time
 
 
 class LiveDataStreamingServer(Thread):
     def __init__(self, port):
         Thread.__init__(self)
         self.port = port
-        self.data = {}
 
-    def update_data(self, data):
-        global _data
-        _data = data
+        web._port = self.port
 
     def start(self):
         app = web.Application([(r'/', WebSocketHandler)])
@@ -32,9 +40,10 @@ class WebSocketHandler(websocket.WebSocketHandler, LiveDataStreamingServer):
     def open(self):
         print('Connection has been established!')
         ioloop.IOLoop.instance().add_timeout(
-            timedelta(seconds=3),
+            timedelta(seconds=0),
             self.send_data)
 
     def send_data(self):
         self.write_message(bytes(str(_data), "utf-8"))
+        ioloop.IOLoop.instance().add_timeout(timedelta(seconds=_time), self.send_data)
 
