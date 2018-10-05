@@ -1,0 +1,41 @@
+  * {
+  padding: 0px;
+  margin: 0px;
+}
+
+.menu_bar {
+  display: none;
+}
+
+header {
+  width: 100%;
+}
+
+header nav {
+  background:#1352a2;
+  width: 1500px;
+  width: 100%;
+  margin-top: none;
+  height: 70px;
+}
+
+header nav ul {
+  list-style: none;
+}
+
+header nav ul li {
+  display: inline-block;
+  position: relative;
+  padding-left: 30px;
+  padding-right: 30px;
+}
+
+header nav ul li a {
+  color: #FFF;
+  display: block;
+  text-decoration: none;
+  padding: 20px;
+  font-size: 17.5px;
+  margin-top: 5px;
+  margin-left: 20px;
+}
