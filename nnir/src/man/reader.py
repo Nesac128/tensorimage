@@ -1,15 +1,13 @@
 import pandas as pd
 import json
 
-from src.config import *
-
 
 class JSONReader:
     def __init__(self, id: int, file_path):
         self.id = id
         self.file_path = file_path
 
-        self.bulk_data = None
+        self.bulk_data = {}
         self.selected_data = None
 
     def bulk_read(self):
