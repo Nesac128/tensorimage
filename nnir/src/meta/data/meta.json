@@ -1,0 +1,24 @@
+{
+   "0": {
+      "path_file": "/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/MNIST_reduced/paths.txt",
+      "n_columns": 2353,
+      "data_path": "/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/MNIST_reduced/data.csv",
+      "n_classes": 10,
+      "trainable": "True",
+      "type": "Image",
+      "data_len": 2352,
+      "width": 28,
+      "height": 28
+   },
+   "1": {
+      "path_file": "/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/CatsAndDogs/paths.txt",
+      "n_columns": 1201,
+      "data_path": "/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/CatsAndDogs/data.csv",
+      "n_classes": 2,
+      "trainable": "True",
+      "type": "Image",
+      "data_len": 1200,
+      "width": 20,
+      "height": 20
+   }
+}
