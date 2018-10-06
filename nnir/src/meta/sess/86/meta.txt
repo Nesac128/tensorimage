@@ -1,4 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALP-RES/paths.txt
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data.csv
-N_CLASSES=3
-TRAINABLE=True

@@ -1,5 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ApplesLemonsPears/paths.txt
-N_COLUMNS=30000
-DATA_PATH=/home/planetgazer8360/PycharmProjects/nnir/data/alp-test.csv
-N_CLASSES=3
-TRAINABLE=True

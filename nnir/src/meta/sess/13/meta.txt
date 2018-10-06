@@ -1,8 +1,0 @@
-PATH_FILE=spaths.txt
-N_COLUMNS=35996
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/HB_sound/hello_goodbye.csv
-N_CLASSES=2
-TRAINABLE=True
-TYPE=Sound
-TRAINED_FULL_MODEL_PATH=HB_SOUND_MODELtest
-TRAINED_FULL_MODEL_PATH=HB_SOUND_MODEL/test

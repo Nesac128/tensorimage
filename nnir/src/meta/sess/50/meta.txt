@@ -1,6 +1,0 @@
-PATH_FILE=/home/planetgazer8360/Desktop/test.txt
-N_COLUMNS=2
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/primes.csv
-N_CLASSES=101364
-TRAINABLE=True
-TYPE=Raw

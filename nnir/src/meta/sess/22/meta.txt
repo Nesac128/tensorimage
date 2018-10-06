@@ -1,2 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/spaths2.txt
-N_COLUMNS=35996

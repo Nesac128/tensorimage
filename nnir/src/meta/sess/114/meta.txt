@@ -1,7 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/Fruits360/paths.txt
-N_COLUMNS=300
-N_COLUMNS=3427
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data.csv
-N_CLASSES=7
-TRAINABLE=True
-TYPE=Image

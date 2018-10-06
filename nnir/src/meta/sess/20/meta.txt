@@ -1,6 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/spaths2.txt
-N_COLUMNS=2
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/HB_sound/unclassified.csv
-N_CLASSES=0
-TRAINABLE=False
-TYPE=Sound

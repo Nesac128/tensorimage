@@ -1,7 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/ALP-RES-P2/paths.txt
-N_COLUMNS=300
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/ALP-RES-P2/data.csv
-N_CLASSES=0
-TRAINABLE=False
-TYPE=Image
-USED_MODEL_PATH__OUTPUT=/media/planetgazer8360/NASER/External Tensorflow workspace/trained_models/CNN4/___/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALP-RES-P2/ALP-RES/predictions.csv__/home/planetgazer8360/PycharmProjects/nnir//media/planetgazer8360/NASER/External Tensorflow workspace/predictions/ALP-RES-P2/ALP-RES/predictions_pathfile.csv

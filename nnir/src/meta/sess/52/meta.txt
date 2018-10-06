@@ -1,9 +1,0 @@
-PATH_FILE=/home/planetgazer8360/Desktop/test.txt
-N_COLUMNS=1
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/unclassified/primes2.csv
-N_CLASSES=0
-TRAINABLE=False
-TYPE=Raw
-USED_MODEL_PATH__OUTPUT=trained_models/Primes3/0-150___/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions.csv__/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions_pfile.csv
-USED_MODEL_PATH__OUTPUT=trained_models/Primes3/0-150___/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions2.csv__/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions2_pfile.csv
-USED_MODEL_PATH__OUTPUT=trained_models/Primes3/0-150___/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions2.csv__/home/planetgazer8360/PycharmProjects/nnir/predictions/Primes/predictions2_pfile.csv

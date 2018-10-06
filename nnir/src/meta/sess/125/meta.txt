@@ -1,7 +1,0 @@
-PATH_FILE=/media/planetgazer8360/NASER/External Tensorflow workspace/datasets/Birds200/paths.txt
-N_COLUMNS=499501
-DATA_PATH=/media/planetgazer8360/NASER/External Tensorflow workspace/data/training/Birds200/data.csv
-N_CLASSES=10
-TRAINABLE=True
-TYPE=Image
-DATA_LEN=499500
