@@ -17,7 +17,7 @@ if config.opt == 'train':
     import src.trainer as nt
 
     @click.command()
-    @click.argument('data_id', required=True)
+    @click.argument('id_name', required=True)
     @click.argument('trained_model_path', required=True)
     @click.argument('trained_model_name', required=True)
     @click.option('--display_frequency', default=50)
@@ -26,9 +26,9 @@ if config.opt == 'train':
     @click.option('--learning_rate', default=0.00000008)
     @click.option('--train_test_split', default=0.1)
     @click.option('--l2_regularization_beta', default=0.01)
-    def train(data_id: int, trained_model_path: str, trained_model_name: str, display_frequency: int,
+    def train(id_name: int, trained_model_path: str, trained_model_name: str, display_frequency: int,
               optimizer: str, n_epochs: int, learning_rate: float, train_test_split: float, l2_regularization_beta: float):
-        trainer = nt.Train(data_id, trained_model_path, trained_model_name,
+        trainer = nt.Train(id_name, trained_model_path, trained_model_name,
                            optimizer=optimizer, display_frequency=display_frequency,
                            n_epochs=n_epochs, learning_rate=learning_rate, train_test_split=train_test_split,
                            l2_regularization_beta=l2_regularization_beta)
@@ -42,13 +42,19 @@ elif config.opt == 'im_man1':
     @click.command()
     @click.argument('dataset_name', required=True)
     @click.argument('file_name', required=True)
-    def im_man_1(dataset_name, file_name: str):
+    @click.argument('identification_name')
+    def im_man_1(dataset_name, file_name: str, identification_name: str):
         loader = iml.ImageLoader(dataset_name)
         loader.get_img_dims()
         loader.extract_image_data()
         loader.write_metadata()
         data, imsize, metadata_writer = loader.image_data, loader.img_dims, loader.MetaWriter
-        writer = iw.TrainingDataWriter(data, file_name, dataset_name, imsize, metadata_writer)
+        writer = iw.TrainingDataWriter(data,
+                                       file_name,
+                                       dataset_name,
+                                       imsize,
+                                       metadata_writer,
+                                       identification_name)
         writer.write_metadata()
         writer.join_data_labels()
         writer.id_man.add()
