@@ -6,22 +6,22 @@ from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 from matplotlib import style
 import matplotlib.pyplot as plt
+from PIL import Image
 import pandas as pd
 import time
 
-from src.pcontrol import *
 from src.config import *
 from src.exceptions import *
 from src.man.reader import *
 from src.man.writer import *
+from src.man.id import ID
 from src.neural_network_models.convolutional.convolutional_neural_network import convolutional_neural_network
-from src.meta.id import ID
-from live_data_streaming import server
+from src.live_data_streaming import server
 
 
 class Train:
     def __init__(self,
-                 data_id,
+                 id_name,
                  model_store_path,
                  model_name,
                  optimizer='GradientDescent',
@@ -34,7 +34,7 @@ class Train:
         self.labels = []
 
         # Store parameter inputs
-        self.data_id = data_id
+        self.id_name = id_name
         self.model_store_path = model_store_path
         self.model_name = model_name
         self.optimizer = optimizer
@@ -56,6 +56,11 @@ class Train:
 
         self.metadata_writer = JSONWriter(self.training_id, training_metafile_path)
         self.accuracy_writer = JSONWriter(self.accuracy_id, accuracy_metafile_path)
+
+        self.id_name_metadata_reader = JSONReader(self.id_name, nid_names_metafile_path)
+        self.id_name_metadata_reader.bulk_read()
+        self.id_name_metadata_reader.select()
+        self.data_id = self.id_name_metadata_reader.selected_data["id"]
 
         self.metadata_reader = JSONReader(self.data_id, dataset_metafile_path)
         self.metadata_reader.bulk_read()
@@ -153,7 +158,7 @@ class Train:
         sess.run(tf.global_variables_initializer())
         os.system("clear")
         self.gen_weights_biases()
-        model = convolutional_neural_network(x, self.weights, self.biases)
+        model, activations = convolutional_neural_network(x, self.weights, self.biases)
 
         labels = tf.placeholder(tf.float32, [None, self.n_classes])
 
@@ -178,11 +183,6 @@ class Train:
 
         print("Began training... ")
         for epoch in range(self.n_epochs):
-            # if epoch != 0:
-            #     if epoch % self.display_frequency == 0:
-            #         self.display_progress()
-            #         os.system("clear")
-            # self.plot_epoch.append(epoch)
             starting_time = time.time()
 
             sess.run(training_step, feed_dict={x: train_x, labels: train_y})
@@ -222,14 +222,14 @@ class Train:
             print('Epoch: ', epoch, "   Training Accuracy: ", training_accuracy, "   Test Accuracy: ", testing_accuracy,
                   "   Training cost: ", training_cost, "   Test Cost: ", testing_cost)
 
-        self.accuracy_writer.update(epoch=self.plot_epoch,
-                                    training_accuracy=self.training_accuracy_history,
-                                    training_cost=self.training_cost_history,
-                                    training_mse=self.training_mse_history,
-                                    testing_accuracy=self.testing_accuracy_history,
-                                    testing_cost=self.testing_cost_history,
-                                    testing_mse=self.testing_mse_history)
-        self.accuracy_writer.write()
+        # self.accuracy_writer.update(epoch=self.plot_epoch,
+        #                             training_accuracy=self.training_accuracy_history,
+        #                             training_cost=self.training_cost_history,
+        #                             training_mse=self.training_mse_history,
+        #                             testing_accuracy=self.testing_accuracy_history,
+        #                             testing_cost=self.testing_cost_history,
+        #                             testing_mse=self.testing_mse_history)
+        # self.accuracy_writer.write()
 
         correct_prediction = tf.equal(tf.argmax(model, 1), tf.argmax(labels, 1))
         accuracy = tf.reduce_mean(tf.cast(correct_prediction, tf.float32))
@@ -249,36 +249,12 @@ class Train:
         print(sess.run(mse))
 
         self.store_model(sess)
+        self.save_layer_activations(sess, train_x)
 
     def store_model(self, sess):
         saver = tf.train.Saver()
         print("Storing model...")
         saver.save(sess, external_working_directory_path + 'trained_models/' + self.model_store_path + '/' + self.model_name)
-
-    def display_progress(self):
-        style.use('seaborn')
-        fig, ax = plt.subplots(figsize=(20, 20))
-        ax.set_title('Accuracy', color='C0')
-
-        plt.xlabel('Epoch')
-        plt.ylabel('Accuracy')
-
-        ax.plot(self.plot_epoch, self.training_accuracy_history, 'C1', label='Training accuracy')
-        ax.plot(self.plot_epoch, self.testing_accuracy_history, 'C2', label='Testing accuracy')
-        ax.legend()
-        plt.show()
-
-        style.use('seaborn')
-        fig, ax = plt.subplots(figsize=(20, 20))
-        ax.set_title('Loss', color='C0')
-
-        plt.xlabel('Epoch')
-        plt.ylabel('Loss')
-
-        ax.plot(self.plot_epoch, self.training_cost_history, 'C1', label='Training cost')
-        ax.plot(self.plot_epoch, self.testing_cost_history, 'C2', label='Testing cost')
-        ax.legend()
-        plt.show()
 
     def augment_data(self, data, labels):
         print("Started data augmentation...")
@@ -308,3 +284,23 @@ class Train:
         if self.trainable != 'True':
             raise DataNotTrainableError('Data is not trainable: {}'.format(self.training_data_path))
 
+    def save_layer_activations(self, sess, train_x):
+        model, activations = convolutional_neural_network(tf.cast(train_x, tf.float32),
+                                                          self.weights, self.biases)
+        activations["conv1"] = sess.run(activations["conv1"])
+        activations["conv1_maxpool2d"] = sess.run(activations["conv1_maxpool2d"])
+        activations["conv2"] = sess.run(activations["conv2"])
+        activations["conv2_maxpool2d"] = sess.run(activations["conv2_maxpool2d"])
+        for i in range(activations["conv1"].shape[0]):
+            image = Image.fromarray(activations["conv1"][i].astype('uint8'), 'RGB')
+            image.save(external_working_directory_path+'layer_activations/test/conv1/image'+str(i)+'.jpg')
+        for i in range(activations["conv1_maxpool2d"].shape[0]):
+            image = Image.fromarray(activations["conv1_maxpool2d"][i].astype('uint8'), 'RGB')
+            image.save(external_working_directory_path+'layer_activations/test/conv1_maxpool2d/image'+str(i)+'.jpg')
+        for i in range(activations["conv2"].shape[0]):
+            image = Image.fromarray(activations["conv2"][i].astype('uint8'), 'RGB')
+            image.save(external_working_directory_path+'layer_activations/test/conv2/image'+str(i)+'.jpg')
+        for i in range(activations["conv2_maxpool2d"].shape[0]):
+            image = Image.fromarray(activations["conv2_maxpool2d"][i].astype('uint8'), 'RGB')
+            image.save(external_working_directory_path+'layer_activations/test/conv2_maxpool2d/image'+str(i)+'.jpg')
+        print("finished")
