@@ -15,9 +15,9 @@ reader = module_from_file('reader', '/home/planetgazer8360/PycharmProjects/nnir/
 
 
 class JSONWriter:
-    def __init__(self, id: int, file_path):
+    def __init__(self, id, file_path):
         """
-        :param id: id to write data to (e.g: training_id:14, data_id:98 or sess_id:119)
+        :param id: id (key) to write data to
         :param file_path: file path to write/update data to
         """
         self.id = id

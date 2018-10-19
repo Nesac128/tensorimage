@@ -3,7 +3,7 @@ import json
 
 
 class JSONReader:
-    def __init__(self, id: int, file_path):
+    def __init__(self, id, file_path):
         self.id = id
         self.file_path = file_path
 
