@@ -1,7 +1,7 @@
 import tensorflow as tf
 
 
-def conv2d(x, weights):
+def conv2d_(x, weights):
     return tf.nn.conv2d(x, weights, strides=[1, 2, 2, 1], padding='SAME')
 
 
@@ -10,28 +10,31 @@ def max_pool2d(x):
 
 
 def convolutional_neural_network(data, weights, biases):
-    dropout_prob = tf.constant(0.4, tf.float32)
+    with tf.name_scope('conv1_layer'):
+        with tf.name_scope('conv1'):
+            conv1 = conv2d_(data, weights['conv1'] + biases['conv1'])
+            print(conv1.shape, " Conv1")
+        with tf.name_scope('conv1_maxpool2d'):
+            conv1_maxpool2d = max_pool2d(conv1)
+            print(conv1_maxpool2d.shape, " Conv1 MaxPool")
 
-    conv1 = conv2d(data, weights['conv_weights1'] + biases['conv_biases1'])
-    print(conv1.shape, " Conv1")
-    conv1 = max_pool2d(conv1)
-    print(conv1.shape, " Conv1 MaxPool")
+    with tf.name_scope('conv2_layer'):
+        with tf.name_scope('conv2'):
+            conv2 = conv2d_(conv1_maxpool2d, weights['conv2'] + biases['conv2'])
+            print(conv2.shape, " Conv2")
+        with tf.name_scope('conv2_maxpool2d'):
+            conv2_maxpool2d = max_pool2d(conv2)
+            print(conv2_maxpool2d.shape, " Conv2 MaxPool")
 
-    # dropout = tf.nn.dropout(conv1, dropout_prob)
+    with tf.name_scope('fcl_layer'):
+        with tf.name_scope('flatten'):
+            fcl = tf.reshape(conv2_maxpool2d, [tf.shape(data)[0], 2*2*64])
+            print(fcl.shape, " FCL reshape")
+        with tf.name_scope('ReLU_add_matmul'):
+            fcl = tf.nn.relu(tf.add(tf.matmul(fcl, weights['fcl']), biases['fcl']))
+            print(fcl.shape, " FCL")
 
-    conv2 = conv2d(conv1, weights['conv_weights2'] + biases['conv_biases2'])
-    print(conv2.shape, " Conv2")
-    conv2 = max_pool2d(conv2)
-    print(conv2.shape, " Conv2 MaxPool")
-
-    # dropout = tf.nn.dropout(conv2, dropout_prob)
-
-    fcl = tf.reshape(conv2, [tf.shape(data)[0], 2*2*64])
-    print(fcl.shape, " FCL reshape")
-    fcl = tf.nn.relu(tf.add(tf.matmul(fcl, weights['fcl_weights3']), biases['fcl_biases3']))
-    print(fcl.shape, " FCL")
-
-    output = tf.add(tf.matmul(fcl, weights['out_weights4']), biases['out_biases4'])
-    print(output.shape, " OUTPUT")
-
-    return output
+    with tf.name_scope('out_layer'):
+        model = tf.add(tf.matmul(fcl, weights['out']), biases['out'])
+        print(model.shape, " OUTPUT")
+    return model, conv1, conv1, conv1_maxpool2d, conv2, conv2_maxpool2d
