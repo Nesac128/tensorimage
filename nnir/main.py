@@ -1,7 +1,4 @@
 import click
-
-
-
 from src.config import nnir_path
 
 
@@ -20,18 +17,16 @@ if config.opt == 'train':
     @click.argument('id_name', required=True)
     @click.argument('trained_model_path', required=True)
     @click.argument('trained_model_name', required=True)
-    @click.option('--display_frequency', default=50)
-    @click.option('--optimizer', default='GradientDescent')
-    @click.option('--n_epochs', default=600)
-    @click.option('--learning_rate', default=0.00000008)
-    @click.option('--train_test_split', default=0.1)
-    @click.option('--l2_regularization_beta', default=0.01)
-    def train(id_name: int, trained_model_path: str, trained_model_name: str, display_frequency: int,
-              optimizer: str, n_epochs: int, learning_rate: float, train_test_split: float, l2_regularization_beta: float):
-        trainer = nt.Train(id_name, trained_model_path, trained_model_name,
-                           optimizer=optimizer, display_frequency=display_frequency,
-                           n_epochs=n_epochs, learning_rate=learning_rate, train_test_split=train_test_split,
-                           l2_regularization_beta=l2_regularization_beta)
+    @click.argument('learning_rate', required=True)
+    @click.argument('n_epochs', required=True)
+    @click.option('l2_regularization_beta', required=True)
+    @click.option('--optimizer', default='GradientDescent', help='Optimizer to use for training process: \
+                                                                 Adam/GradientDescent')
+    @click.option('--train_test_split', default=0.2)
+    def train(id_name: int, trained_model_path: str, trained_model_name: str, learning_rate: float,
+              l2_regularization_beta: float, n_epochs: int, optimizer: str, train_test_split: float):
+        trainer = nt.Train(id_name, trained_model_path, trained_model_name, n_epochs, learning_rate,
+                           l2_regularization_beta, optimizer=optimizer, train_test_split=train_test_split)
         trainer.train_convolutional()
     train()
 
