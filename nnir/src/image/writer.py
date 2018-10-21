@@ -24,24 +24,37 @@ class DataWriter:
         self.id_name = id_name
 
         self.data_dir = base_unclassified_data_store_path+self.dataset_name
-        self.csv_writer = CSVWriter(self.data_dir)
+        self.csv_writer = CSVWriter(self.data_dir+'/'+self.filename)
 
         mkdir(self.data_dir)
 
         self.n_classes = 0
 
-    def main(self):
+        self.id_man = ID('dataset')
+        self.id_man.read()
+        self.nid = int(self.id_man.id)
+
+        self.nid_names_writer = JSONWriter(self.id_name, nid_names_metafile_path)
+
+    def write_image_data(self):
+        writing_progress = bar.Bar("Writing images: ", max=len(self.data))
         for image_data_inst in self.data:
             self.csv_writer.write(image_data_inst)
+            writing_progress.next()
+
+    def write_metadata(self):
         self.metadata_writer.update(
             n_columns=str(len(self.data[0])),
-            data_path=external_working_directory_path + 'data/unclassified/' + self.dataset_name + '/' + self.filename,
+            data_path=external_working_directory_path + 'user/data/unclassified/' + self.dataset_name + '/' + self.filename,
             n_classes=self.n_classes,
             trainable='False',
             width=self.img_dims[0][0],
             height=self.img_dims[0][1],
             name=self.id_name)
         self.metadata_writer.write()
+
+        self.nid_names_writer.update(id=self.nid+1)
+        self.nid_names_writer.write()
 
 
 class TrainingDataWriter:
@@ -61,7 +74,7 @@ class TrainingDataWriter:
         :param id_name: unique name to identify extracted data
         """
         # Store parameters
-        self.input_data = data
+        self.data = data
         self.filename = filename
         self.dataset_name = dataset_name
         self.img_dims = img_dims
@@ -80,7 +93,7 @@ class TrainingDataWriter:
         # Read current data ID from id.json and store it
         self.id_man = ID('dataset')
         self.id_man.read()
-        self.nid = self.id_man.id
+        self.nid = int(self.id_man.id)
 
         # Store path where to save output image data with labels and define CSVWriter object
         self.data_dir = external_working_directory_path+'user/data/training/'+self.dataset_name+'/'
@@ -92,26 +105,26 @@ class TrainingDataWriter:
         # Store number of classes
         self.n_classes = len(unique(self.labels))
 
-    def join_data_labels(self):
-        writing_progress = bar.Bar("Writing images: ", max=len(self.input_data))
-        for imn in range(len(self.input_data)):
-            self.input_data[imn].append(self.labels[imn])
-            self.csv_writer.write(self.input_data[imn])
+    def write_image_data(self):
+        writing_progress = bar.Bar("Writing images: ", max=len(self.data))
+        for imn in range(len(self.data)):
+            self.data[imn].append(self.labels[imn])
+            self.csv_writer.write(self.data[imn])
             writing_progress.next()
 
     def write_metadata(self):
         # Update necessary parameters for training process as metadata, to reduce required user input
         self.metadata_writer.update(
-            n_columns=len(self.input_data[0]) + 1,
+            n_columns=len(self.data[0]) + 1,
             data_path=self.data_dir + self.filename,
             n_classes=self.n_classes,
             trainable='True',
             type='Image',
-            data_len=len(self.input_data[0]),
+            data_len=len(self.data[0]),
             width=self.img_dims[0][0],
             height=self.img_dims[0][1],
             name=self.id_name)
         self.metadata_writer.write()
 
-        self.nid_names_writer.update(id=self.nid)
+        self.nid_names_writer.update(id=self.nid+1)
         self.nid_names_writer.write()
