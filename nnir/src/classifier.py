@@ -1,173 +1,157 @@
 import tensorflow as tf
 import numpy as np
-import json
 import csv
-import os
+import time
+import datetime
 
-from src.pcontrol import *
 from src.config import *
-
 from src.neural_network_models.convolutional.convolutional_neural_network import convolutional_neural_network
-
 from src.image.display import display_image
+from src.man.reader import *
+from src.man.mkdir import mkdir
 
 
 class Predict:
     def __init__(self,
-                 sess_id: int,
-                 model_path,
+                 id_name,
+                 model_folder_name,
                  model_name,
                  training_dataset_name,
                  prediction_dataset_name,
-                 prediction_fname='predictions',
-                 show_im: bool=True):
-        self.id = sess_id
-        self.model_path = model_path
+                 show_image: bool=True):
+        self.id_name = id_name
+        self.model_folder_name = model_folder_name
         self.model_name = model_name
         self.training_dataset_name = training_dataset_name
         self.prediction_dataset_name = prediction_dataset_name
-        self.prediction_fname = prediction_fname
-        self.show_im = show_im
+        try:
+            self.show_image = eval(str(show_image))
+        except NameError:
+            self.show_image = False
 
         self.raw_predictions = []
         self.predictions = []
-        self.Meta = MetaData()
-        raw_meta = self.Meta.read('n_columns', 'data_path', 'width', 'height', sess_id=sess_id)
 
-        meta = [mt for mt in raw_meta]
+        self.id_name_metadata_reader = JSONReader(self.id_name, nid_names_metafile_path)
+        self.id_name_metadata_reader.bulk_read()
+        self.id_name_metadata_reader.select()
+        self.data_id = self.id_name_metadata_reader.selected_data["id"]
+        self.metadata_reader = JSONReader(str(self.data_id), dataset_metafile_path)
+        self.metadata_reader.bulk_read()
+        self.metadata_reader.select()
 
-        self.n_columns = meta[0]
-        self.dpath = meta[1]
-        self.width = int(meta[2])
-        self.height = int(meta[3])
+        image_metadata = self.metadata_reader.selected_data
+        self.data_path = image_metadata["data_path"]
+        self.width = image_metadata["width"]
+        self.height = image_metadata["height"]
+        self.path_file = image_metadata["path_file"]
 
-        ppath = external_working_directory_path+'predictions/'+self.prediction_dataset_name
-        if not os.path.exists(ppath):
-            os.mkdir(ppath)
-            if not os.path.exists(ppath+'/'+self.training_dataset_name):
-                os.mkdir(ppath+'/'+self.training_dataset_name)
-        self.pfnames = [external_working_directory_path+'predictions/'+self.prediction_dataset_name + '/' +
-                        self.training_dataset_name + '/' + self.prediction_fname + '.csv',
-                        external_working_directory_path+'predictions/'+self.prediction_dataset_name + '/' +
-                        self.training_dataset_name + '/' + self.prediction_fname + '_pathfile.csv']
+        timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S').replace('-', '_')
+        timestamp = timestamp.replace(' ', '_')
+        timestamp = timestamp.replace(':', '_')
+
+        predictions_path = external_working_directory_path+'user/predictions/'+self.prediction_dataset_name
+        mkdir(predictions_path)
+        mkdir(predictions_path+'/'+self.model_folder_name)
+        self.prediction_filenames = \
+            [external_working_directory_path+'user/predictions/'+self.prediction_dataset_name + '/' +
+                self.model_folder_name + '/raw_predictions_'+timestamp+'.csv',
+                external_working_directory_path+'user/predictions/'+self.prediction_dataset_name + '/' +
+                self.model_folder_name + '/predictions_to_paths'+timestamp+'.csv']
+
+        self.csv_dataset_reader = CSVReader(self.data_path)
+        self.class_id_reader = JSONReader(None, external_working_directory_path+'user/datasets/' +
+                                          self.training_dataset_name + '/class_id.json')
+
+        self.path_reader = TXTReader(self.path_file)
+        self.path_reader.read_raw()
+        self.path_reader.parse()
+        self.paths = self.path_reader.parsed_data
+
+        self.class_id_reader.bulk_read()
+        self.class_id = self.class_id_reader.bulk_data
+
+        self.model_restore = RestoreModel(self.model_folder_name, self.model_name)
+
+        self.X = None
+        self.weights = None
+        self.biases = None
+
+        self.list_X = None
 
     def read_dataset(self):
-        sess = tf.Session()
-        df = pd.read_csv(self.dpath, header=None)
-        X = df[df.columns].values
-        X = sess.run(tf.reshape(X, [X.shape[0], self.height, self.width, 3]))
+        self.csv_dataset_reader.read_file()
+        self.X = self.csv_dataset_reader.X
 
-        print(X.shape, "X shape")
-
-        return X
-
-    def restore_model(self, sess):
-        # Create saver object
-        saver = tf.train.import_meta_graph(
-            external_working_directory_path + self.model_path + self.model_name + '.meta')
-
-        # Attempt to restore model for prediction
-        saver.restore(sess, tf.train.latest_checkpoint(external_working_directory_path + self.model_path + './'))
-        print("Trained model has been restored successfully!")
-
-        w1, w2, w3, w4 = sess.run(('conv_weights1:0', 'conv_weights2:0', 'fcl_weights3:0', 'out_weights4:0'))
-        b1, b2, b3, b4 = sess.run(('conv_biases1:0', 'conv_biases2:0', 'fcl_biases3:0', 'out_biases4:0'))
-
-        weights = {
-            'conv_weights1': tf.convert_to_tensor(w1),
-            'conv_weights2': tf.convert_to_tensor(w2),
-            'fcl_weights3': tf.convert_to_tensor(w3),
-            'out_weights4': tf.convert_to_tensor(w4)
-        }
-
-        biases = {
-            'conv_biases1': tf.convert_to_tensor(b1),
-            'conv_biases2': tf.convert_to_tensor(b2),
-            'fcl_biases3': tf.convert_to_tensor(b3),
-            'out_biases4': tf.convert_to_tensor(b4)
-        }
-        return weights, biases
+        self.list_X = np.ndarray.tolist(self.X)
 
     def predict(self):
         sess = tf.Session()
+        self.read_dataset()
+        self.model_restore.restore_cnn_model1_params(sess)
+        self.weights, self.biases = self.model_restore.weights, self.model_restore.biases
 
         x = tf.placeholder(tf.float32, [None, self.height, self.width, 3])
 
-        weights, biases = self.restore_model(sess)
+        model, conv1 = convolutional_neural_network(x, self.weights, self.biases)
 
-        model = convolutional_neural_network(x, weights, biases)
+        self.read_dataset()
+        self.X = sess.run(tf.reshape(self.X, [self.X.shape[0], self.height, self.width, 3]))
+        prediction = sess.run(model, feed_dict={x: self.X})
+        self.raw_predictions = np.ndarray.tolist(sess.run(tf.argmax(prediction, 1)))
 
-        prediction = sess.run(model, feed_dict={x: self.read_dataset()})
-        print(prediction.shape)
-
-        pred_labels_int = np.ndarray.tolist(sess.run(tf.argmax(prediction, 1)))
-        self.raw_predictions = pred_labels_int
-
-        self.int_to_label()
-        self.write_predictions()
-
-    def int_to_label(self):
-        assigned_labels, names = self.label_assigner()
-
-        for raw_prediction in self.raw_predictions:
-            for pred_char, pred_int in assigned_labels.items():
-                if raw_prediction == pred_int:
-                    self.predictions.append([names[pred_int]])
-
-        return self.predictions
-
-    def label_assigner(self):
-        int_to_label = {}
-
-        with open(external_working_directory_path+'datasets/'+self.training_dataset_name+'/obj_labels.json', 'r') as ol:
-            data = json.load(ol)
-            for ln, item in enumerate(sorted(data.values())):
-                int_to_label[item] = ln
-
-        return int_to_label, list(data.keys())
+    def match_class_id(self):
+        for rp in self.raw_predictions:
+            self.predictions.append(self.class_id[str(rp)])
 
     def write_predictions(self):
-        # Re-write data in addition to predicted labels in CSV file; filename is a parameter
-        data = list(self.read_dataset())
-        data = [list(dt) for dt in data]
+        # Write image data in new file with predicted classes
+        for image_n in range(len(self.list_X)):
+            self.list_X[image_n].append(self.predictions[image_n])
 
-        for pix_data_n in range(len(data)):
-            data[pix_data_n].append(self.predictions[pix_data_n][0])
-
-        with open(self.pfnames[0], 'a') as csvfile:
+        with open(self.prediction_filenames[0], 'a') as csvfile:
             writer = csv.writer(csvfile, delimiter=',')
-            for im_pix_data in data:
-                writer.writerow(im_pix_data)
+            for image_prediction in self.list_X:
+                writer.writerow(image_prediction)
 
-        # Write image paths together with predicted labels in CSV file
-        raw_meta = self.Meta.read('data_path', sess_id=self.id)
-
-        meta = [mt for mt in raw_meta]
-
-        df = pd.read_csv(meta[0], header=None)
-
-        raw_rows = df.iterrows()
-        rows = []
-        for index, row in raw_rows:
-            rows.append(list(row.values))
-
-        df = pd.read_csv('meta/sess/'+str(self.id)+'/impaths.csv', header=None)
-
-        raw_rows = df.iterrows()
-        paths = []
-        for _, row in raw_rows:
-            paths.append(list(row)[0])
-
-        with open(self.pfnames[1], 'w') as pathfile:
+        with open(self.prediction_filenames[1], 'a') as pathfile:
             writer = csv.writer(pathfile, delimiter=',')
-            for n in range(len(paths)):
-                if self.show_im is True:
-                    display_image(self.predictions[n][0], paths[n])
-                writer.writerow([paths[n], self.predictions[n][0]])
+            for image_n in range(len(self.paths)):
+                writer.writerow([self.paths[image_n], self.predictions[image_n]])
+        for image_n in range(len(self.paths)):
+            if self.show_image:
+                display_image(self.predictions[image_n], self.paths[image_n])
 
-    def main(self):
-        self.predict()
-        self.Meta.write(self.id, used_model_path__output=external_working_directory_path +
-                        self.model_path + '___' +
-                        os.getcwd()+'/'+self.pfnames[0] +
-                        '__'+os.getcwd()+'/'+self.pfnames[1])
+
+class RestoreModel:
+    def __init__(self, model_folder_name, model_name):
+        self.model_folder_name = model_folder_name
+        self.model_name = model_name
+
+        self.weights = {}
+        self.biases = {}
+
+    def restore_cnn_model1_params(self, sess):
+        saver = tf.train.import_meta_graph(external_working_directory_path + 'user/trained_models/' +
+                                           self.model_folder_name + '/' + self.model_name + '.meta')
+        saver.restore(sess, tf.train.latest_checkpoint(external_working_directory_path + 'user/trained_models/' +
+                                                       self.model_folder_name + './'))
+        with tf.name_scope('weights'):
+            self.weights = {
+                'conv1': sess.run('weights/conv1:0'),
+                'conv2': sess.run('weights/conv2:0'),
+                'fcl': sess.run('weights/fcl:0'),
+                'out': sess.run('weights/out:0')
+            }
+        with tf.name_scope('biases'):
+            self.biases = {
+                'conv1': sess.run('biases/conv1:0'),
+                'conv2': sess.run('biases/conv2:0'),
+                'fcl': sess.run('biases/fcl:0'),
+                'out': sess.run('biases/out:0')
+            }
+
+        for w in self.weights:
+            self.weights[w] = tf.convert_to_tensor(self.weights[w])
+        for b in self.biases:
+            self.biases[b] = tf.convert_to_tensor(self.biases[b])
