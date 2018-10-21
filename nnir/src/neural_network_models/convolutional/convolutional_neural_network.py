@@ -37,4 +37,4 @@ def convolutional_neural_network(data, weights, biases):
     with tf.name_scope('out_layer'):
         model = tf.add(tf.matmul(fcl, weights['out']), biases['out'])
         print(model.shape, " OUTPUT")
-    return model, conv1, conv1, conv1_maxpool2d, conv2, conv2_maxpool2d
+    return model, conv1
