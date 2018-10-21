@@ -18,11 +18,13 @@ class Train:
                  id_name: str,
                  model_folder_name: str,
                  model_name: str,
-                 n_epochs: int,
-                 learning_rate: float,
-                 l2_regularization_beta: float,
+                 n_epochs,
+                 learning_rate,
+                 l2_regularization_beta,
+                 batch_size: int = 32,
                  optimizer: str='Adam',
-                 train_test_split: float = 0.2):
+                 train_test_split: float = 0.2,
+                 augment_data=False):
         """
         :param id_name: unique name which identifies which image data to read for training
         :param model_folder_name: folder name where output trained model will be stored
@@ -38,10 +40,15 @@ class Train:
         self.model_folder_name = model_folder_name
         self.model_name = model_name
         self.optimizer = optimizer
-        self.n_epochs = n_epochs
-        self.learning_rate = learning_rate
-        self.train_test_split = train_test_split
-        self.l2_reg_beta = l2_regularization_beta
+        self.n_epochs = int(n_epochs)
+        self.learning_rate = float(learning_rate)
+        self.train_test_split = float(train_test_split)
+        self.l2_reg_beta = float(l2_regularization_beta)
+        self.batch_size = int(batch_size)
+        try:
+            self.augment_data = eval(str(augment_data))
+        except NameError:
+            self.augment_data = False
 
         # Define necessary Objects
         self.id_man = ID('training')
@@ -83,6 +90,11 @@ class Train:
         self.bwb.build_cnn_model1_params()
         self.weights, self.biases = self.bwb.weights, self.bwb.biases
 
+        self.train_x = None
+        self.train_y = None
+
+        self.build_dataset()
+
     def build_optimizer(self, cost_function):
         if self.optimizer == 'GradientDescent':
             print("Optimizer: GradientDescent")
@@ -111,28 +123,32 @@ class Train:
         one_hot_encode[np.arange(n_labels), dlabels] = 1
         return one_hot_encode
 
+    def get_next_batch(self, i):
+        return self.train_x[(self.batch_size*i)-self.batch_size:self.batch_size*i], \
+                   self.train_y[(self.batch_size*i)-self.batch_size:self.batch_size*i]
+
     def train_convolutional(self):
         sess = tf.Session()
-        self.build_dataset()
+
+        if self.augment_data:
+            self.augment_data_()
 
         X, Y = shuffle(self.X, self.Y, random_state=1)
-        train_x, test_x, train_y, test_y = train_test_split(X, Y, test_size=self.train_test_split, random_state=415)
-        train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], self.height, self.width, 3]))
+        train_x, test_x, self.train_y, test_y = train_test_split(X, Y, test_size=self.train_test_split, random_state=415)
+        self.train_x = sess.run(tf.reshape(train_x, shape=[train_x.shape[0], self.height, self.width, 3]))
         test_x = sess.run(tf.reshape(test_x, shape=[test_x.shape[0], self.height, self.width, 3]))
-
-        # train_x, train_y = sess.run(self.augment_data(train_x, train_y))
-        # test_x, test_y = sess.run(self.augment_data(test_x, test_y))
 
         x = tf.placeholder(tf.float32, [None, self.height, self.width, 3], name='x')
         labels = tf.placeholder(tf.float32, [None, self.n_classes])
+
+        batch_iters = train_x.shape[0] // self.batch_size
 
         init = tf.global_variables_initializer()
         sess.run(init)
 
         os.system("clear")
 
-        model, conv1, conv1_maxpool2d,\
-            conv2, conv2_maxpool2d = convolutional_neural_network(x, self.weights, self.biases)
+        model, conv1 = convolutional_neural_network(x, self.weights, self.biases)
 
         with tf.name_scope('cost_function'):
             cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
@@ -160,75 +176,95 @@ class Train:
         with tf.name_scope('cost'):
             tf.summary.scalar('training_cost', cost_function)
         with tf.name_scope('activations'):
-            tf.summary.image('conv1', conv1, max_outputs=100)
-            tf.summary.image('conv1_maxpool2d', conv1_maxpool2d, max_outputs=100)
-            tf.summary.image('conv2', conv2, max_outputs=100)
-            tf.summary.image('conv2_maxpool2d', conv2_maxpool2d, max_outputs=100)
+            tf.summary.image('conv1', conv1, max_outputs=500)
 
         write_op = tf.summary.merge_all()
-
         writer = tf.summary.FileWriter(external_working_directory_path+'user/logs/'+str(self.id_name), sess.graph)
         for epoch in range(self.n_epochs):
-            sess.run(training_step, feed_dict={x: train_x, labels: train_y})
+            estop = False
+            training_accuracy_ = 0
+            testing_accuracy_ = 0
+            training_cost = 0
+            testing_cost = 0
+            for i in range(batch_iters):
+                x_, y = self.get_next_batch(i+1)
+                try:
+                    sess.run(training_step, feed_dict={x: x_, labels: y})
 
-            training_accuracy_ = (sess.run(training_accuracy, feed_dict={x: train_x, labels: train_y}))
-            testing_accuracy_ = (sess.run(testing_accuracy, feed_dict={x: test_x, labels: test_y}))
-            testing_cost = sess.run(cost_function, feed_dict={x: test_x, labels: test_y})
-            training_cost = sess.run(cost_function, feed_dict={x: train_x, labels: train_y})
+                    batch_training_accuracy = (sess.run(training_accuracy, feed_dict={x: x_, labels: y}))
+                    batch_testing_accuracy = (sess.run(testing_accuracy, feed_dict={x: test_x, labels: test_y}))
+                    batch_testing_cost = sess.run(cost_function, feed_dict={x: test_x, labels: test_y})
+                    batch_training_cost = sess.run(cost_function, feed_dict={x: x_, labels: y})
 
-            conv1_ = sess.run(conv1, feed_dict={x: test_x})
-            conv1_maxpool2d_ = sess.run(conv1_maxpool2d, feed_dict={x: conv1_})
-            conv2_ = sess.run(conv2, feed_dict={x: conv1_maxpool2d_})
-            conv2_maxpool2d_ = sess.run(conv2_maxpool2d, feed_dict={x: conv2_})
+                    training_accuracy_ += batch_training_accuracy
+                    testing_accuracy_ += batch_testing_accuracy
+                    training_cost += batch_training_cost
+                    testing_cost += batch_testing_cost
 
-            summary = sess.run(write_op, {training_accuracy: training_accuracy_,
-                                          testing_accuracy: testing_accuracy_,
-                                          cost_function: training_cost,
-                                          conv1: conv1_,
-                                          conv1_maxpool2d: conv1_maxpool2d_,
-                                          conv2: conv2_,
-                                          conv2_maxpool2d: conv2_maxpool2d_})
+                except KeyboardInterrupt:
+                    estop = self.early_stop()
+                    if estop:
+                        break
+                    else:
+                        continue
+            if not estop:
+                avr_training_accuracy = training_accuracy_/batch_iters
+                avr_testing_accuracy = testing_accuracy_/batch_iters
 
-            writer.add_summary(summary, epoch)
-            writer.flush()
-
-            print("Epoch ", epoch+1, "   Training accuracy: ", training_accuracy_,
-                  "   Testing accuracy: ", testing_accuracy_, "   Training cost ",
-                  training_cost, "   Testing cost: ", testing_cost)
+                conv1_ = sess.run(conv1, feed_dict={x: test_x})
+                summary = sess.run(write_op, {training_accuracy: avr_training_accuracy,
+                                              testing_accuracy: avr_testing_accuracy,
+                                              cost_function: training_cost,
+                                              conv1: conv1_})
+                writer.add_summary(summary, epoch)
+                writer.flush()
+                print("Epoch ", epoch + 1, "   Training accuracy: ", float("%0.5f" % avr_training_accuracy),
+                      "   Testing accuracy: ", float("%0.5f" % avr_testing_accuracy), "   Training cost ",
+                      training_cost, "   Testing cost: ", testing_cost)
+            else:
+                break
 
         self.store_model(sess)
         writer.close()
 
-    def augment_data(self, data, labels, iters: int):
-        augmented_data = tf.constant([], tf.float32, shape=[0, 28, 28, 3])
+    def augment_data_(self):
+        augmented_data = tf.constant([], tf.float32, shape=[0, self.height, self.width, 3])
         augmented_labels = tf.constant([], tf.float32, shape=[0, self.n_classes])
-        for data_anum in range(iters):
-            for n_image, n_label in zip(range(data.shape[0]), range(labels.shape[0])):
-                flip_1 = tf.image.flip_up_down(data[n_image])
-                flip_2 = tf.image.flip_left_right(data[n_image])
-                flip_3 = tf.image.random_flip_up_down(data[n_image])
-                flip_4 = tf.image.random_flip_left_right(data[n_image])
+        for n_image, n_label in zip(range(self.X.shape[0]), range(self.Y.shape[0])):
+            flip_1 = tf.image.flip_up_down(self.X[n_image])
+            flip_2 = tf.image.flip_left_right(self.X[n_image])
+            flip_3 = tf.image.random_flip_up_down(self.X[n_image])
+            flip_4 = tf.image.random_flip_left_right(self.X[n_image])
 
-                pre_data = tf.concat([tf.expand_dims(data[n_image], 0), tf.expand_dims(flip_1, 0),
-                                      tf.expand_dims(flip_2, 0), tf.expand_dims(flip_3, 0),
-                                      tf.expand_dims(flip_4, 0)], 0)
+            pre_data = tf.concat([tf.expand_dims(self.X[n_image], 0), tf.expand_dims(flip_1, 0),
+                                  tf.expand_dims(flip_2, 0), tf.expand_dims(flip_3, 0),
+                                  tf.expand_dims(flip_4, 0)], 0)
 
-                pre_labels = tf.concat([tf.expand_dims(labels[n_label], 0), tf.expand_dims(labels[n_label], 0),
-                                        tf.expand_dims(labels[n_label], 0), tf.expand_dims(labels[n_label], 0),
-                                        tf.expand_dims(labels[n_label], 0)], 0)
-                augmented_data = tf.concat([augmented_data, tf.cast(pre_data, tf.float32)], 0)
-                augmented_labels = tf.concat([augmented_labels, tf.cast(pre_labels, tf.float32)], 0)
+            pre_labels = tf.concat([tf.expand_dims(self.Y[n_label], 0), tf.expand_dims(self.Y[n_label], 0),
+                                    tf.expand_dims(self.Y[n_label], 0), tf.expand_dims(self.Y[n_label], 0),
+                                    tf.expand_dims(self.Y[n_label], 0)], 0)
+            augmented_data = tf.concat([augmented_data, tf.cast(pre_data, tf.float32)], 0)
+            augmented_labels = tf.concat([augmented_labels, tf.cast(pre_labels, tf.float32)], 0)
 
         return augmented_data, augmented_labels
 
     def is_trainable(self):
-        if self.trainable != 'True':
+        if not eval(self.trainable):
             raise DataNotTrainableError('Data is not trainable: {}'.format(self.training_data_path))
 
     def store_model(self, sess):
         saver = tf.train.Saver()
         saver.save(sess, external_working_directory_path + 'user/trained_models/' + self.model_folder_name
                    + '/' + self.model_name)
+
+    def early_stop(self):
+        early_stop = input("You have chosen to early stop the training process. Do you wish to proceed? [Y/n]")
+        if early_stop == "Y" or early_stop == "y":
+            print("Saving model...")
+            return True
+        else:
+            print("Continuing with training...")
+            return False
 
 
 class BuildWeightsBiases:
