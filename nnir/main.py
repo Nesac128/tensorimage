@@ -15,18 +15,22 @@ if config.opt == 'train':
 
     @click.command()
     @click.argument('id_name', required=True)
-    @click.argument('trained_model_path', required=True)
-    @click.argument('trained_model_name', required=True)
+    @click.argument('model_folder_name', required=True)
+    @click.argument('model_name', required=True)
     @click.argument('learning_rate', required=True)
     @click.argument('n_epochs', required=True)
-    @click.option('l2_regularization_beta', required=True)
-    @click.option('--optimizer', default='GradientDescent', help='Optimizer to use for training process: \
-                                                                 Adam/GradientDescent')
-    @click.option('--train_test_split', default=0.2)
-    def train(id_name: int, trained_model_path: str, trained_model_name: str, learning_rate: float,
-              l2_regularization_beta: float, n_epochs: int, optimizer: str, train_test_split: float):
-        trainer = nt.Train(id_name, trained_model_path, trained_model_name, n_epochs, learning_rate,
-                           l2_regularization_beta, optimizer=optimizer, train_test_split=train_test_split)
+    @click.argument('l2_regularization_beta', required=True)
+    @click.option('--optimizer', default='GradientDescent', help='Optimizer to use for training: \
+                                                                 Adam(RECOMMENDED)/GradientDescent')
+    @click.option('--train_test_split', default=0.2, help='Float value to split training data into training \
+                    and testing set')
+    @click.option('--batch_size', default=32, help='Batch size to use for training')
+    @click.option('--augment_data', default=False, help='Augment training data or not. [True/False]')
+    def train(id_name: int, model_folder_name: str, model_name: str, learning_rate: float, l2_regularization_beta: float,
+              n_epochs: int, optimizer: str, train_test_split: float, batch_size: int, augment_data: bool):
+        trainer = nt.Train(id_name, model_folder_name, model_name, n_epochs, learning_rate, l2_regularization_beta,
+                           optimizer=optimizer, train_test_split=train_test_split, batch_size=batch_size,
+                           augment_data=augment_data)
         trainer.train_convolutional()
     train()
 
@@ -37,8 +41,8 @@ elif config.opt == 'im_man1':
     @click.command()
     @click.argument('dataset_name', required=True)
     @click.argument('file_name', required=True)
-    @click.argument('identification_name')
-    def im_man_1(dataset_name, file_name: str, identification_name: str):
+    @click.argument('id_name')
+    def im_man_1(dataset_name, file_name: str, id_name: str):
         loader = iml.ImageLoader(dataset_name)
         loader.get_img_dims()
         loader.extract_image_data()
@@ -49,9 +53,9 @@ elif config.opt == 'im_man1':
                                        dataset_name,
                                        imsize,
                                        metadata_writer,
-                                       identification_name)
+                                       id_name)
         writer.write_metadata()
-        writer.join_data_labels()
+        writer.write_image_data()
         writer.id_man.add()
     im_man_1()
 
@@ -61,35 +65,41 @@ elif config.opt == 'im_man2':
 
     @click.command()
     @click.argument('dataset_name', required=True)
-    @click.argument('method', required=True)
     @click.argument('file_name', required=True)
-    def im_man_2(dataset_name: str, method: str, file_name: str):
-        loader = iml.ImageLoader(dataset_name, method=method)
-        data, imsize, metadata_writer = loader.main()
-        writer = iw.DataWriter(data, file_name, dataset_name, imsize, metadata_writer)
-        writer.main()
+    @click.argument('id_name', required=True)
+    def im_man_2(dataset_name: str, file_name: str, id_name):
+        loader = iml.ImageLoader(dataset_name)
+        loader.get_img_dims()
+        loader.extract_image_data()
+        loader.write_metadata()
+        data, imsize, metadata_writer = loader.image_data, loader.img_dims, loader.MetaWriter
+        writer = iw.DataWriter(data, file_name, dataset_name, imsize, metadata_writer, id_name)
+        writer.write_metadata()
+        writer.write_image_data()
     im_man_2()
 
 elif config.opt == 'classify':
     import src.classifier as nc
 
     @click.command()
-    @click.argument('sess_id', required=True)
-    @click.argument('model_path', required=True)
+    @click.argument('id_name', required=True)
+    @click.argument('model_folder_name', required=True)
     @click.argument('model_name', required=True)
     @click.argument('training_dataset_name', required=True)
     @click.argument('prediction_dataset_name', required=True)
-    @click.option('--prediction_fname', default='predictions')
-    @click.option('--show_image', default=True)
-    def predict(sess_id: int, model_path: str, model_name: str, training_dataset_name: str, prediction_dataset_name,
-                prediction_fname: str, show_image: str):
+    @click.option('--show_image', default=True, help='Option to display all images with labels after classification \
+                                                     True/False', )
+    def predict(id_name: int, model_folder_name: str, model_name: str, training_dataset_name: str,
+                prediction_dataset_name, show_image: str):
         if show_image == 'True' or show_image == 'true':
             show_image = True
         elif show_image == 'False' or show_image == 'false':
             show_image = False
-        predicter = nc.Predict(sess_id, model_path, model_name, training_dataset_name, prediction_dataset_name,
-                               prediction_fname=prediction_fname, show_im=show_image)
-        predicter.main()
+        predicter = nc.Predict(id_name, model_folder_name, model_name, training_dataset_name, prediction_dataset_name,
+                               show_image=show_image)
+        predicter.predict()
+        predicter.match_class_id()
+        predicter.write_predictions()
     predict()
 elif config.opt == 'write_paths':
     from src.man import label_path_writer as mlpw
