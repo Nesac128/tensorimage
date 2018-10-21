@@ -1,39 +1,57 @@
-# 1 nnir
-__nnir__ is a machine learning tool which uses Python, and [Tensorflow](https://github.com/tensorflow/tensorflow) to provide an user-friendly way to train models for image classification by implementing Convolutional Neural Networks. Moreover, it offers the possibility to use these models for image classification on ___any___ images in a fast and easy manner. 
+# TensorImage
+TensorImage is a machine learning tool which provides an user friendly way to train image recognition models, by implementing Convolutional Neural Networks. Moreover, it offers the option to use these models to make predictions for thousands of unclassified images quickly and easily.
 
-# 2 Prerequisites
-- Python 3.* for [Linux/UNIX](https://www.python.org/downloads/source/) or [Mac OS X](https://www.python.org/downloads/mac-osx/)
-- Node.js for [Linux/UNIX](https://nodejs.org/en/download/package-manager/#debian-and-ubuntu-based-linux-distributions) or [MAC OS X](https://nodejs.org/en/download/package-manager/#macos)
-- Install all of the dependencies by running __setup.py__
-- Open __config.py__ and modify __external_working_directory_path__ to a folder path where your workspace will be located. Also modify __nnir_path__ to the path where you will save the downloaded repository
+## Getting started
+These are the steps you need to follow to get TensorImage working on your computer.
+### Download TensorImage
+From the terminal:
+```shell
+$ git clone https://github.com/TensorImage/TensorImage.git
 ```
-python3 __init__.py
+### Install dependencies
+You have to install the dependencies that are required by TensorImage. From the terminal:
+```shell
+# Access repository directory
+$ cd TensorImage/
+# Run install script
+$ python3 setup.py
 ```
+### Configure TensorImage
+In order to get TensorImage working, you must adjust the configuration to your computer. From the terminal:
+```shell
+# Access repository directory
+$ cd TensorImage/
 
-# 3 Operations
-There are several operations that can be carried out within __nnir__:
-- Training OpCode: __train__
+# Open configuration file for editing
+$ nano config.py
+```
+You should now have a terminal similar to the following:
+```python
+# User configurations
+workspace_dir = 'path/to/workspace/'
+tensorimage_path = 'path/to/repository'
+...
+```
+Modify ```workspace_dir``` to the workspace folder that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file. Press:
+```shell
+Ctrl+X
+y # (y means yes, to save the file)
+Enter
+```
+To finish up with setting up TensorImage, from the terminal:
+```shell
+# Access repository directory
+$ cd TensorImage/
 
-- Image classification OpCode: __classify__
+# Run __init__.py
+$ python3 __init__.py
+```
+You are now ready to begin using TensorImage!
 
-- Extracting image data for training OpCode: __im_man1__
-
-- Extracting image data for classifying OpCode: __im_man2__
-
-- Writing image paths OpCode: __write_paths__
-
-- Writing image labels OpCode: __write_labels__
-
-- Bulk resizing images OpCode: __resize__
-
-- Bulk changing format to __JPG__
- 
- __OpCode = Operation Code__
-
- # 4 Documentation
- ## 4.1 Preprocesing a dataset
- In order to be able to train a model you must have the image dataset inside ```your_workspace_folder_path/training_images/```. The training image dataset __must__ have the following structure:
- 
+ ## Usage
+ ### Preprocesing a dataset
+ #### Structuring a training dataset
+ In order to be able to train an image classification model, you must have the image dataset inside ```workspace_dir/training_images/```. The training images dataset must have the following structure:
 ```
  +-- training_images  (directory)
  |   +-- your_dataset  (directory)
@@ -55,16 +73,23 @@ There are several operations that can be carried out within __nnir__:
          |   image3.jpg  (image)
          |   ...         (rest of images)
 ```
-#### Notes
-- The image names displayed inside each image class folder are just examples, the image names used by your dataset can be entirely different
-- The current nnir version only accepts images with __JPG__ format
+#### Adding a training dataset to TensorImage
+Assuming you have already downloaded and structured your training images dataset, to add a training dataset to TensorImage, you just need to move (or copy) it to ```workspace_dir/user/training_images/```.
+#### Bulk resizing images in training dataset
+From the terminal:
+```shell
+$ cd TensorImage/TensorImage/
 
+# Set option for training dataset resizing
+$ python3 set.py resize
 
-You can either use your own image dataset or download one from the internet, from websites such as:
-- [https://www.kaggle.com](https://www.kaggle.com)
-- [UCI machine-learning repository](https://archive.ics.uci.edu/ml/index.php)
-- [http://deeplearning.net/datasets/](http://deeplearning.net/datasets/)
+# Show help (optional)
+$ python3 main.py --help
+# Will output:
+# Usage: main.py [OPTIONS] DATASET_NAME WIDTH HEIGHT
 
+$ python3 main.py your_training_dataset_name output_image_width output_image_height
+```
  
 ## 4.2 Training
 ### 4.2.1 Automatically writing image paths and labels
