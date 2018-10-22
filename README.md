@@ -32,12 +32,8 @@ workspace_dir = 'path/to/workspace/'
 tensorimage_path = 'path/to/repository'
 ...
 ```
-Modify ```workspace_dir``` to the workspace folder that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file. Press:
-```shell
-Ctrl+X
-y # (y means yes, to save the file)
-Enter
-```
+Modify ```workspace_dir``` to the workspace folder that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file.
+
 To finish up with setting up TensorImage, from the terminal:
 ```shell
 # Access repository directory
@@ -53,73 +49,109 @@ You are now ready to begin using TensorImage!
  #### Structuring a training dataset
  In order to be able to train an image classification model, you must have the image dataset inside ```workspace_dir/training_images/```. The training images dataset must have the following structure:
 ```
- +-- training_images  (directory)
- |   +-- your_dataset  (directory)
-     |   +-- class1  (directory)
-         |   image1.jpg  (image)
-         |   image2.jpg  (image)
-         |   image3.jpg  (image)
-         |   ...         (rest of images)
-         
-     |   +-- class2  (directory)
-         |   image1.jpg  (image)
-         |   image2.jpg  (image)
-         |   image3.jpg  (image)
-         |   ...         (rest of images)
-         
-     |   +-- ...  (rest of directories)
-         |   image1.jpg  (image)
-         |   image2.jpg  (image)
-         |   image3.jpg  (image)
-         |   ...         (rest of images)
++-- your_dataset  (directory)
+|   +-- class1  (directory)
+   |   image1.jpg  (image)
+   |   image2.jpg  (image)
+   |   image3.jpg  (image)
+   |   ...         (rest of images)
+
+|   +-- class2  (directory)
+   |   image1.jpg  (image)
+   |   image2.jpg  (image)
+   |   image3.jpg  (image)
+   |   ...         (rest of images)
+
+|   +-- ...  (rest of directories)
+   |   image1.jpg  (image)
+   |   image2.jpg  (image)
+   |   image3.jpg  (image)
+   |   ...         (rest of images)
 ```
 #### Adding a training dataset to TensorImage
-Assuming you have already downloaded and structured your training images dataset, to add a training dataset to TensorImage, you just need to move (or copy) it to ```workspace_dir/user/training_images/```.
+Assuming you have already structured your dataset, from the terminal:
+```shell
+$ cd tensorimage/tensorimage/
+$ python3 set.py add_training_dataset
+$ python3 main.py path/to/your/training/dataset
+```
 #### Bulk resizing images in training dataset
 From the terminal:
 ```shell
-$ cd TensorImage/TensorImage/
+$ cd tensorimage/tensorimage/
 
 # Set option for training dataset resizing
-$ python3 set.py resize
+$ python3 set.py resize_training_dataset
 
 # Show help (optional)
 $ python3 main.py --help
 # Will output:
 # Usage: main.py [OPTIONS] DATASET_NAME WIDTH HEIGHT
 
-$ python3 main.py your_training_dataset_name output_image_width output_image_height
+$ python3 main.py dataset_name output_image_width output_image_height
 ```
- 
-## 4.2 Training
-### 4.2.1 Automatically writing image paths and labels
-#### From the nnir/ directory, run:
+#### Structuring an unclassified image dataset
+Your unclassified image dataset has to have the following structure:
 ```
-python3 set.py write_paths
-python3 main.py training_images/your_dataset_name your_dataset_name
-python3 set.py write_labels
-python3 main.py training_images/your_dataset_name your_dataset_name
++-- your_dataset  (directory)
+   |   image1.jpg  (image)
+   |   image2.jpg  (image)
+   |   image3.jpg  (image)
+   |   image4.jpg  (image)
+   |   image5.jpg  (image)
+   |   image6.jpg  (image)
+   |   ...         (rest of images)
 ```
-Once you have run all of the above, 3 files should have been created inside ```your_workspace_folder_path/datasets/your_dataset_name/```: 
+#### Adding and unclassified image dataset
+Again, assuming you have correctly structured your unclassified image dataset, from the terminal:
+```shell
+$ cd tensorimage/tensorimage
+$ python3 set.py add_unclassified_dataset
+$ python3 main.py path/to/your/unclassified/dataset
 ```
-paths.txt (contains the paths for every image in the dataset)
-labels.txt (contains the labels for every image in the dataset)
-obj_labels.json (contains program-generated labels matched to image labels taken from directory name for each image class)
-```
+#### Bulk resizing images in an unclassified image dataset
+From the terminal:
+```shell
+$ cd tensorimage/tensorimage/
 
-### 4.2.2  Extracting image data for training
-#### From the nnir/ directory, run:
-```
-python3 set.py im_man1
-python3 main.py your_dataset_name output_filename.csv
-```
-The output CSV file containing all of the image data together with the labels will be stored automatically in ```your_workspace_folder_path/data/training/your_dataset_name/output_filename.csv```
+# Set option for training dataset resizing
+$ python3 set.py resize_unclassified_dataset
 
-### 4.2.3 Training
-#### From the nnir/ directory, run:
- ```
- python3 main.py data_id* model_directory_name* model_filename* --learning_rate learning_rate --n_epochs n_epochs --display_frequency display_frequency --train_test_split train_test_split --l2_regularization_beta l2_regularization_beta
- ```
+# Show help (optional)
+$ python3 main.py --help
+# Will output:
+# Usage: main.py [OPTIONS] DATASET_NAME WIDTH HEIGHT
+
+$ python3 main.py dataset_name output_image_width output_image_height
+```
+### Extracting image data from training dataset
+From the terminal:
+```shell
+$ cd tensorimage/tensorimage
+$ python3 set.py write_training_dataset_data
+$ python3 main.py dataset_name output_filename.csv id_name
+```
+You will probably have understood what ```dataset_name``` and ```output_filename``` mean, but not perhaps for ```id_name```. ```id_name``` is just a __unique__ name that you will give to the extracted data, which will be used to later specify what image data to use for training.
+### Extracting image data from unclassified dataset
+From the terminal:
+```shell
+$ cd tensorimage/tensorimage
+$ python3 set.py write_unclassified_dataset_data
+$ python3 main.py dataset_name output_filename.csv id_name
+```
+If cannot understand what ```id_name``` is used for, and what you have to pass as a parameter, read the last part of the section above.
+### Training
+Assuming you have already extracted the image data for your training dataset, from the terminal:
+```shell
+$ cd tensorimage/tensorimage
+$ python3 set.py train
+$ python3 main.py id_name* model_folder_name* model_filename* learning_rate* n_epochs* l2_regularization_beta* --optimizer [Adam/GradientDescent] --train_test_split train_test_split --batch_size batch_size --augment_data [True/False]
+```
+__* required__
+
+For ```id_name```, pass the ```id_name``` you have entered in one of the previous steps, when extracting the image data. This is used by TensorImage to identify exactly what data is going to be used for training.
+For ```model_folder_name``` enter the folder name where the trained model will be stored, and for ```model_filename``` pass the filename that will be used for the actual model files.
+
  #### Parameter information:
 ```
 data_id::  type: number    required: yes    info: a number which NNIR uses to find internally generated information about data that has been extracted for training
