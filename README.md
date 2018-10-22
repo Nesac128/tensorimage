@@ -4,18 +4,34 @@ TensorImage is a machine learning tool which provides an user friendly way to tr
 ## Getting started
 These are the steps you need to follow to get TensorImage working on your computer.
 ### Download TensorImage
-From the terminal:
-```shell
-$ git clone https://github.com/TensorImage/TensorImage.git
-```
+You can now [download](https://github.com/TensorImage/TensorImage/releases) the latest TensorImage version.
 ### Install dependencies
 You have to install the dependencies that are required by TensorImage. From the terminal:
 ```shell
 # Access repository directory
 $ cd TensorImage/
+
 # Run install script
 $ python3 setup.py
 ```
+#### Open-source libraries used by TensorImage:
+- [TensorFlow](https://github.com/tensorflow/tensorflow)
+
+- [TensorBoard](https://github.com/tensorflow/tensorboard)
+
+- [Click](https://github.com/pallets/click)
+
+- [OpenCV Python](https://github.com/skvark/opencv-python)
+
+- [Numpy](https://github.com/numpy/numpy)
+
+- [Pandas](https://github.com/pandas-dev/pandas)
+
+- [Pillow](https://github.com/python-pillow/Pillow)
+
+- [Sci-kit learn](https://github.com/scikit-learn/scikit-learn)
+
+- [Progress](https://github.com/Xfennec/progress)
 ### Configure TensorImage
 In order to get TensorImage working, you must adjust the configuration to your computer. From the terminal:
 ```shell
@@ -102,7 +118,7 @@ Your unclassified image dataset has to have the following structure:
    |   image6.jpg  (image)
    |   ...         (rest of images)
 ```
-#### Adding and unclassified image dataset
+#### Adding an unclassified image dataset
 Again, assuming you have correctly structured your unclassified image dataset, from the terminal:
 ```shell
 $ cd tensorimage/tensorimage
@@ -150,27 +166,29 @@ $ python3 main.py id_name* model_folder_name* model_filename* learning_rate* n_e
 __* required__
 
 For ```id_name```, pass the ```id_name``` you have entered in one of the previous steps, when extracting the image data. This is used by TensorImage to identify exactly what data is going to be used for training.
-For ```model_folder_name``` enter the folder name where the trained model will be stored, and for ```model_filename``` pass the filename that will be used for the actual model files.
+For ```model_folder_name``` enter the folder name where the trained model will be stored, and for ```model_filename``` pass the filename that will be used for the model files.
+For ```learning_rate```, ```n_epochs``` and ```l2_regularization_beta```, pass the values that will be used as learning rate, the number of epochs and value used for L2 regularization (a technique used to prevent overfitting).
 
- #### Parameter information:
+The rest of the parameters are options, and are not required, as they have default values. For ```optimizer``` the default value is ```GradientDescent```, and if you want to use the ```Adam``` optimizer, pass ```--optimizer Adam```. The default value for ```train_test_split``` is ```0.2```, and if you want to change the value, enter ```--train_test_split value```. The default value for ```batch_size``` is ```32```, and if you want to use a different value, pass ```--batch_size batch_size_value```. Finally, the ```augment_data``` option is a boolean which specifies if you want to augment the input training data automatically, or not. Its default value is ```False```, and if you want to use data augmentation, enter ```--augment_data True``` .
+
+### Visualizing training progress with TensorBoard
+From the terminal:
+```shell
+# Access TensorBoard log directory inside your workspace
+$ cd workspace_dir/user/logs
+
+$ tensorboard --logdir id_name
 ```
-data_id::  type: number    required: yes    info: a number which NNIR uses to find internally generated information about data that has been extracted for training
-
-model_directory_name::  type: string    required: yes    info: folder name where trained model will be stored
-
-model_filename::  type: string    info: filename for model which will be stored in model_directory_name
-
-learning_rate::  type: float    required: no    default: 0.0000000008    info: learning rate for training process
-
-n_epochs::  type:  integer    required: no    default: 2500    info: number of epochs for training process
-
-display_frequency:  type: integer    required: no    default: 50    info: every how many epochs information regarding training/testing accuracy and training/testing cost will be displayed in graph
-
-train_test_split:  type: float    required: no    default: 0.1    info: proportion of input data that will be used as testing set
- 
-l2_regularization_beta:  type: float    required: no    default: 0.01    info: float which will be used for L2 regularization to reduce model overfitting
+For ```id_name``` pass the ```id_name``` that you used for training, as it will be the name of the directory where the training progress information is stored. After that a link should appear in the terminal. Open it, and you should now have TensorBoard open.
+### Classifying 
+If you have already extracted the image data for an unclassified dataset, from the terminal:
+```shell
+$ cd tensorimage/tensorimage
+$ python3 set.py classify
+$ python3 main.py id_name* model_folder_name* model_name* training_dataset_name* --show_images [True/False]
 ```
+__* required__
+For ```id_name``` pass the ```id_name``` that you passed for extracting the image data. It will be used by TensorImage to identify and use the extracted image data for classification. For ```model_folder_name``` and ```model_name``` enter the ```model_folder_name``` and ```model_name``` you entered during the training process. It is the model that will be used for classification, where what TensorImage has learned about the training dataset is stored in. For ```training_dataset_name``` pass the training dataset name from which image data was extracted, and was used for the training process. The default value for ```show_images``` is ```False```. To set it to ```True```, just enter ```--show_images True```. If set to ```True```, the classifier will output the images individually, on a window, with the title being its predicted class (if classifying on many images, it is recommended to leave ```show_images``` as ```False```).
 
-![training_example_image](https://nesac128.github.io/nnir_readme_images/training_ex.jpg)
-![cost_example_image](https://nesac128.github.io/nnir_readme_images/cost_ex.jpg)
-![accuracy_example_image](https://nesac128.github.io/nnir_readme_images/accuracy_ex.jpg)
+## License
+TensorImage is licensed under the [GPL-2.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
