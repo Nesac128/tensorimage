@@ -17,13 +17,11 @@ class Predict:
                  model_folder_name,
                  model_name,
                  training_dataset_name,
-                 prediction_dataset_name,
-                 show_image: bool=True):
+                 show_image: bool=False):
         self.id_name = id_name
         self.model_folder_name = model_folder_name
         self.model_name = model_name
         self.training_dataset_name = training_dataset_name
-        self.prediction_dataset_name = prediction_dataset_name
         try:
             self.show_image = eval(str(show_image))
         except NameError:
@@ -45,22 +43,23 @@ class Predict:
         self.width = image_metadata["width"]
         self.height = image_metadata["height"]
         self.path_file = image_metadata["path_file"]
+        self.prediction_dataset_name = image_metadata["dataset_name"]
 
         timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S').replace('-', '_')
         timestamp = timestamp.replace(' ', '_')
         timestamp = timestamp.replace(':', '_')
 
-        predictions_path = external_working_directory_path+'user/predictions/'+self.prediction_dataset_name
+        predictions_path = workspace_dir+'user/predictions/'+self.prediction_dataset_name
         mkdir(predictions_path)
         mkdir(predictions_path+'/'+self.model_folder_name)
         self.prediction_filenames = \
-            [external_working_directory_path+'user/predictions/'+self.prediction_dataset_name + '/' +
+            [workspace_dir+'user/predictions/'+self.prediction_dataset_name + '/' +
                 self.model_folder_name + '/raw_predictions_'+timestamp+'.csv',
-                external_working_directory_path+'user/predictions/'+self.prediction_dataset_name + '/' +
+                workspace_dir+'user/predictions/'+self.prediction_dataset_name + '/' +
                 self.model_folder_name + '/predictions_to_paths'+timestamp+'.csv']
 
         self.csv_dataset_reader = CSVReader(self.data_path)
-        self.class_id_reader = JSONReader(None, external_working_directory_path+'user/datasets/' +
+        self.class_id_reader = JSONReader(None, workspace_dir+'user/datasets/' +
                                           self.training_dataset_name + '/class_id.json')
 
         self.path_reader = TXTReader(self.path_file)
@@ -132,9 +131,9 @@ class RestoreModel:
         self.biases = {}
 
     def restore_cnn_model1_params(self, sess):
-        saver = tf.train.import_meta_graph(external_working_directory_path + 'user/trained_models/' +
+        saver = tf.train.import_meta_graph(workspace_dir + 'user/trained_models/' +
                                            self.model_folder_name + '/' + self.model_name + '.meta')
-        saver.restore(sess, tf.train.latest_checkpoint(external_working_directory_path + 'user/trained_models/' +
+        saver.restore(sess, tf.train.latest_checkpoint(workspace_dir + 'user/trained_models/' +
                                                        self.model_folder_name + './'))
         with tf.name_scope('weights'):
             self.weights = {
