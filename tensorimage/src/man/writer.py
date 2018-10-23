@@ -1,17 +1,6 @@
 import csv
 import json
-import importlib
-import importlib.util
-
-
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-reader = module_from_file('reader', '/home/planetgazer8360/PycharmProjects/nnir/nnir/src/man/reader.py')
+from src.man.reader import JSONReader
 
 
 class JSONWriter:
@@ -24,7 +13,7 @@ class JSONWriter:
         self.file_path = file_path
         self.udata = None
 
-        self.json_reader = reader.JSONReader(self.id, self.file_path)
+        self.json_reader = JSONReader(self.id, self.file_path)
 
     def parse(self):
         keys = [key for key in self.udata]
@@ -38,7 +27,6 @@ class JSONWriter:
     def update(self, **udata):
         """
         :param udata: **kwargs data to write in JSON file
-        :return:
         """
         self.udata = udata
 
