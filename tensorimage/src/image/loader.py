@@ -13,7 +13,7 @@ class ImageLoader:
         # Store parameter
         self.dataset_name = dataset_name
 
-        self.path_file = external_working_directory_path+'user/datasets/'+dataset_name+'/paths.txt'
+        self.path_file = workspace_dir+'user/datasets/'+dataset_name+'/paths.txt'
         reader = TXTReader(self.path_file)
         reader.read_raw()
         reader.parse()

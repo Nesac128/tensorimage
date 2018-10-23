@@ -1,29 +1,31 @@
-from nnir.src.config import external_working_directory_path
-from nnir.src.man.mkdir import mkdir
-from nnir.src.man.mkemptfile import mkemptfile
-from nnir.src.man.writer import JSONWriter
+from tensorimage.src.config import workspace_dir
+from tensorimage.src.man.mkdir import mkdir
+from tensorimage.src.man.mkemptfile import mkemptfile
 
-dir_paths = [external_working_directory_path,
-             external_working_directory_path + 'user',
-             external_working_directory_path + 'user/datasets',
-             external_working_directory_path + 'user/trained_models',
-             external_working_directory_path + 'user/data',
-             external_working_directory_path + 'user/training_images',
-             external_working_directory_path + 'user/unclassified_images',
-             external_working_directory_path + 'user/layer_activations',
-             external_working_directory_path + 'metadata',
-             external_working_directory_path + 'metadata/classification',
-             external_working_directory_path + 'metadata/data',
-             external_working_directory_path + 'metadata/training']
+dir_paths = [workspace_dir,
+             workspace_dir + 'user',
+             workspace_dir + 'user/datasets',
+             workspace_dir + 'user/trained_models',
+             workspace_dir + 'user/data',
+             workspace_dir + 'user/training_images',
+             workspace_dir + 'user/unclassified_images',
+             workspace_dir + 'user/layer_activations',
+             workspace_dir + 'metadata',
+             workspace_dir + 'metadata/classification',
+             workspace_dir + 'metadata/data',
+             workspace_dir + 'metadata/training']
 
-file_paths = [external_working_directory_path + 'metadata/id.json',
-              external_working_directory_path + 'metadata/classification/meta.json',
-              external_working_directory_path + 'metadata/data/meta.json',
-              external_working_directory_path + 'metadata/training/meta.json',
-              external_working_directory_path + 'metadata/training/accuracy.json']
+file_paths = [workspace_dir + 'metadata/id.json',
+              workspace_dir + 'metadata/classification/meta.json',
+              workspace_dir + 'metadata/data/meta.json',
+              workspace_dir + 'metadata/training/meta.json',
+              workspace_dir + 'metadata/training/accuracy.json']
 
 
 for dir_path in dir_paths:
     mkdir(dir_path)
+
+for file_path in file_paths:
+    mkemptfile(file_path)
 
 __version__ = 'v1.0.0'

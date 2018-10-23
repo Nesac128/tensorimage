@@ -179,7 +179,7 @@ class Train:
             tf.summary.image('conv1', conv1, max_outputs=500)
 
         write_op = tf.summary.merge_all()
-        writer = tf.summary.FileWriter(external_working_directory_path+'user/logs/'+str(self.id_name), sess.graph)
+        writer = tf.summary.FileWriter(workspace_dir+'user/logs/'+str(self.id_name), sess.graph)
         for epoch in range(self.n_epochs):
             estop = False
             training_accuracy_ = 0
@@ -254,7 +254,7 @@ class Train:
 
     def store_model(self, sess):
         saver = tf.train.Saver()
-        saver.save(sess, external_working_directory_path + 'user/trained_models/' + self.model_folder_name
+        saver.save(sess, workspace_dir + 'user/trained_models/' + self.model_folder_name
                    + '/' + self.model_name)
 
     def early_stop(self):
