@@ -1,21 +1,6 @@
-import importlib
-import importlib.util
-
-# from src.config import *
-# from src.man.reader import *
-# from src.man.writer import *
-
-
-def module_from_file(module_name, file_path):
-    spec = importlib.util.spec_from_file_location(module_name, file_path)
-    module = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(module)
-    return module
-
-
-reader = module_from_file('reader', '/home/planetgazer8360/PycharmProjects/nnir/nnir/src/man/reader.py')
-writer = module_from_file('writer', '/home/planetgazer8360/PycharmProjects/nnir/nnir/src/man/writer.py')
-config = module_from_file('config', '/home/planetgazer8360/PycharmProjects/nnir/nnir/src/config.py')
+from src.config import *
+from src.man.reader import *
+from src.man.writer import *
 
 
 class ID:
@@ -25,8 +10,8 @@ class ID:
         self.idfile_id = None
         self.select_idfile_id()
 
-        self.json_reader = reader.JSONReader(self.idfile_id, config.id_management_file_path)
-        self.json_writer = writer.JSONWriter(self.idfile_id, config.id_management_file_path)
+        self.json_reader = JSONReader(self.idfile_id, id_management_file_path)
+        self.json_writer = JSONWriter(self.idfile_id, id_management_file_path)
 
         self.id = None
 
