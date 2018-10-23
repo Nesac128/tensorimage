@@ -1,2 +1,5 @@
 def mkemptfile(path):
-    open(path, 'a').close()
+    with open(path, 'a') as f:
+        if 'json' in path:
+            f.write('{}')
+        f.close()
