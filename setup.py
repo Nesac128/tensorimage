@@ -18,6 +18,5 @@ setup(
     classifiers=(
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPL-2.0 License",
-        "Operating System :: POSIX",
-        "Programming Language :: Python")
+        "Operating System :: POSIX")
 )
