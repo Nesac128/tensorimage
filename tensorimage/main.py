@@ -1,10 +1,10 @@
 import click
-from src.config import nnir_path
+from src.config import tensorimage_path, workspace_dir
 
 
 class Config:
     def __init__(self):
-        with open(nnir_path+'nnir/src/tmp/opt') as temp:
+        with open(tensorimage_path+'tensorimage/src/tmp/opt') as temp:
             self.opt = temp.readline()
 
 
@@ -33,23 +33,22 @@ if config.opt == 'train':
                            augment_data=augment_data)
         trainer.train_convolutional()
     train()
-
-elif config.opt == 'im_man1':
+elif config.opt == 'write_training_dataset_data':
     import src.image.loader as iml
     import src.image.writer as iw
 
     @click.command()
     @click.argument('dataset_name', required=True)
-    @click.argument('file_name', required=True)
+    @click.argument('filename', required=True)
     @click.argument('id_name')
-    def im_man_1(dataset_name, file_name: str, id_name: str):
+    def im_man_1(dataset_name, filename: str, id_name: str):
         loader = iml.ImageLoader(dataset_name)
         loader.get_img_dims()
         loader.extract_image_data()
         loader.write_metadata()
         data, imsize, metadata_writer = loader.image_data, loader.img_dims, loader.MetaWriter
         writer = iw.TrainingDataWriter(data,
-                                       file_name,
+                                       filename,
                                        dataset_name,
                                        imsize,
                                        metadata_writer,
@@ -58,8 +57,7 @@ elif config.opt == 'im_man1':
         writer.write_image_data()
         writer.id_man.add()
     im_man_1()
-
-elif config.opt == 'im_man2':
+elif config.opt == 'write_unclassified_dataset_data':
     import src.image.loader as iml
     import src.image.writer as iw
 
@@ -77,7 +75,6 @@ elif config.opt == 'im_man2':
         writer.write_metadata()
         writer.write_image_data()
     im_man_2()
-
 elif config.opt == 'classify':
     import src.classifier as nc
 
@@ -87,46 +84,58 @@ elif config.opt == 'classify':
     @click.argument('model_name', required=True)
     @click.argument('training_dataset_name', required=True)
     @click.argument('prediction_dataset_name', required=True)
-    @click.option('--show_image', default=True, help='Option to display all images with labels after classification \
+    @click.option('--show_images', default=False, help='Option to display all images with labels after classification \
                                                      True/False', )
-    def predict(id_name: int, model_folder_name: str, model_name: str, training_dataset_name: str,
-                prediction_dataset_name, show_image: str):
-        if show_image == 'True' or show_image == 'true':
-            show_image = True
-        elif show_image == 'False' or show_image == 'false':
-            show_image = False
-        predicter = nc.Predict(id_name, model_folder_name, model_name, training_dataset_name, prediction_dataset_name,
-                               show_image=show_image)
+    def predict(id_name: int, model_folder_name: str, model_name: str, training_dataset_name: str, show_images: str):
+        if show_images == 'True' or show_images == 'true':
+            show_images = True
+        elif show_images == 'False' or show_images == 'false':
+            show_images = False
+        predicter = nc.Predict(id_name, model_folder_name, model_name, training_dataset_name, show_image=show_images)
         predicter.predict()
         predicter.match_class_id()
         predicter.write_predictions()
     predict()
-elif config.opt == 'write_paths':
-    from src.man import label_path_writer as mlpw
+elif config.opt == 'add_training_dataset':
+    from src.man.label_path_writer import *
+    from shutil import copytree
 
     @click.command()
-    @click.argument('main_directory_path')
-    @click.argument('dataset_name')
-    def path_writer(main_directory_path, dataset_name):
-        mlpw.write_paths(main_directory_path, dataset_name)
-    path_writer()
-elif config.opt == 'write_labels':
-    from src.man import label_path_writer as mlpw
+    @click.argument('dataset_path', required=True)
+    def add_training_dataset(dataset_path):
+        dataset_name = dataset_path.split('/')[-1]
+        write_training_dataset_paths(dataset_name)
+        write_labels(dataset_name)
+        copytree(dataset_path, workspace_dir+'users/training_images/')
+    add_training_dataset()
+elif config.opt == 'add_unclassified_dataset':
+    from src.man.label_path_writer import write_unclassified_dataset_paths
+    from shutil import copytree
 
     @click.command()
-    @click.argument('main_directory_path')
-    @click.argument('dataset_name')
-    def label_writer(main_directory_path, dataset_name):
-        mlpw.write_labels(main_directory_path, dataset_name)
-    label_writer()
-elif config.opt == 'resize':
+    @click.argument('dataset_path', required=True)
+    def add_unclassified_dataset(dataset_path):
+        dataset_name = dataset_path.split('/')[-1]
+        write_unclassified_dataset_paths(dataset_name)
+        copytree(dataset_path, workspace_dir+'users/unclassified_images/')
+    add_unclassified_dataset()
+elif config.opt == 'resize_training_dataset':
     import src.preprocess.resize as smr
 
     @click.command()
-    @click.argument('base_path')
-    @click.argument('new_path')
-    @click.argument('width')
-    @click.argument('height')
-    def resize(base_path, new_path, width, height):
-        smr.resize(base_path, new_path, (int(width), int(height)))
+    @click.argument('dataset_name', required=True)
+    @click.argument('width', required=True)
+    @click.argument('height', required=True)
+    def resize(dataset_name, width, height):
+        smr.resize_training_dataset(dataset_name, (int(width), int(height)))
+    resize()
+elif config.opt == 'resize_unclassified_dataset':
+    import src.preprocess.resize as smr
+
+    @click.command()
+    @click.argument('dataset_name', required=True)
+    @click.argument('width', required=True)
+    @click.argument('height', required=True)
+    def resize(dataset_name, width, height):
+        smr.resize_unclassified_dataset(dataset_name, (int(width), int(height)))
     resize()
