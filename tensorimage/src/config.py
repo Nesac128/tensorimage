@@ -1,6 +1,6 @@
 # User configurations
-workspace_dir = '/media/planetgazer8360/NASER/External Tensorflow workspace/'
-tensorimage_path = '/home/planetgazer8360/PycharmProjects/nnir/'
+workspace_dir = '/path/to/workspace/'
+tensorimage_path = '/path/to/repository/'
 
 # Program configurations
 training_metafile_path = workspace_dir+'metadata/training/meta.json'
