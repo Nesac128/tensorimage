@@ -45,7 +45,7 @@ class DataWriter:
     def write_metadata(self):
         self.metadata_writer.update(
             n_columns=str(len(self.data[0])),
-            data_path=workspace_dir + 'user/data/unclassified/' + self.dataset_name + '/' + self.filename,
+            data_path=workspace_dir + 'user/unclassified_datasets/' + self.dataset_name + '/' + self.filename,
             n_classes=self.n_classes,
             trainable='False',
             width=self.img_dims[0][0],
@@ -85,7 +85,7 @@ class TrainingDataWriter:
         self.nid_names_writer = JSONWriter(self.id_name, nid_names_metafile_path)
 
         # Read image labels text file and store it
-        self.labels_path = workspace_dir+'user/datasets/'+dataset_name+'/labels.txt'
+        self.labels_path = base_training_data_store_path+dataset_name+'/labels.txt'
         self.PathReader = TXTReader(self.labels_path)
         self.PathReader.read_raw()
         self.PathReader.parse()
@@ -97,7 +97,7 @@ class TrainingDataWriter:
         self.nid = int(self.id_man.id)
 
         # Store path where to save output image data with labels and define CSVWriter object
-        self.data_dir = workspace_dir+'user/data/training/'+self.dataset_name+'/'
+        self.data_dir = workspace_dir+'user/training_datasets/'+self.dataset_name+'/'
         self.csv_writer = CSVWriter(self.data_dir+self.filename)
 
         # Create storing folder for output image data
@@ -120,12 +120,12 @@ class TrainingDataWriter:
             data_path=self.data_dir + self.filename,
             n_classes=self.n_classes,
             trainable='True',
-            type='Image',
             data_len=len(self.data[0]),
             width=self.img_dims[0][0],
             height=self.img_dims[0][1],
-            name=self.id_name)
+            name=self.id_name,
+            dataset_name=self.dataset_name)
         self.metadata_writer.write()
 
-        self.nid_names_writer.update(id=self.nid+1)
+        self.nid_names_writer.update(id=self.nid)
         self.nid_names_writer.write()

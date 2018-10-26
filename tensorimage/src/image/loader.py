@@ -9,11 +9,17 @@ from src.config import *
 
 class ImageLoader:
     def __init__(self,
-                 dataset_name):
+                 dataset_name,
+                 dataset_type):
         # Store parameter
         self.dataset_name = dataset_name
 
-        self.path_file = workspace_dir+'user/datasets/'+dataset_name+'/paths.txt'
+        if dataset_type == "training":
+            self.dataset_dir = "training_datasets"
+        elif dataset_type == "unclassified":
+            self.dataset_dir = "unclassified_datasets"
+
+        self.path_file = workspace_dir+'user/'+self.dataset_dir+'/'+self.dataset_name+'/paths.txt'
         reader = TXTReader(self.path_file)
         reader.read_raw()
         reader.parse()
@@ -26,7 +32,7 @@ class ImageLoader:
         self.id_man = ID('dataset')
         self.id_man.read()
 
-        self.MetaWriter = JSONWriter(self.id_man.id, dataset_metafile_path)
+        self.MetaWriter = JSONWriter(str(int(self.id_man.id)+1), dataset_metafile_path)
 
     def extract_image_data(self):
         loading_progress = bar.Bar("Loading images: ", max=len(self.image_paths))
@@ -36,7 +42,6 @@ class ImageLoader:
             im_pixels = []
             for x in range(self.img_dims[pixels_n][0]):
                 for y in range(self.img_dims[pixels_n][1]):
-                    # print(pixels_n)
                     r, g, b = img_rgb.getpixel((x, y))
                     im_pixels.append(r)
                     im_pixels.append(g)
@@ -48,7 +53,6 @@ class ImageLoader:
         for n in range(self.n_images):
             img = Image.open(self.image_paths[0])
             self.img_dims.append(img.size)
-        print("Finished dimension extraction...")
 
     def write_metadata(self):
         self.MetaWriter.update(path_file=self.path_file)
