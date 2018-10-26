@@ -10,7 +10,6 @@ from src.exceptions import *
 from src.man.reader import *
 from src.man.writer import *
 from src.man.id import ID
-from src.neural_network_models.convolutional.convolutional_neural_network import convolutional_neural_network
 
 
 class Train:
@@ -22,9 +21,9 @@ class Train:
                  learning_rate,
                  l2_regularization_beta,
                  batch_size: int = 32,
-                 optimizer: str='Adam',
                  train_test_split: float = 0.2,
-                 augment_data=False):
+                 augment_data=False,
+                 cnn_architecture='cnn_model1'):
         """
         :param id_name: unique name which identifies which image data to read for training
         :param model_folder_name: folder name where output trained model will be stored
@@ -34,40 +33,36 @@ class Train:
         :param l2_regularization_beta: value to use for L2 Regularization beta
         :param optimizer: optimizer name to use for training
         :param train_test_split: proportion of data that will be used as testing set
+        :param cnn_architecture: cnn architecture name (e.g: alexnet)
         """
         # Store parameter inputs
         self.id_name = id_name
         self.model_folder_name = model_folder_name
         self.model_name = model_name
-        self.optimizer = optimizer
         self.n_epochs = int(n_epochs)
         self.learning_rate = float(learning_rate)
         self.train_test_split = float(train_test_split)
-        self.l2_reg_beta = float(l2_regularization_beta)
+        self.l2_beta = float(l2_regularization_beta)
         self.batch_size = int(batch_size)
         try:
             self.augment_data = eval(str(augment_data))
         except NameError:
             self.augment_data = False
+        self.cnn_architecture = cnn_architecture
 
         # Define necessary Objects
         self.id_man = ID('training')
         self.id_man.read()
         self.training_id = self.id_man.id
 
-        self.id_man = ID('accuracy')
-        self.id_man.read()
-        self.accuracy_id = self.id_man.id
-
-        self.metadata_writer = JSONWriter(self.training_id, training_metafile_path)
-        self.accuracy_writer = JSONWriter(self.accuracy_id, accuracy_metafile_path)
+        self.training_metadata_writer = JSONWriter(self.training_id, training_metafile_path)
 
         self.id_name_metadata_reader = JSONReader(self.id_name, nid_names_metafile_path)
         self.id_name_metadata_reader.bulk_read()
         self.id_name_metadata_reader.select()
         self.data_id = self.id_name_metadata_reader.selected_data["id"]
 
-        self.metadata_reader = JSONReader(self.data_id, dataset_metafile_path)
+        self.metadata_reader = JSONReader(str(self.data_id), dataset_metafile_path)
         self.metadata_reader.bulk_read()
         self.metadata_reader.select()
 
@@ -86,22 +81,17 @@ class Train:
         self.X = None
         self.Y = None
 
-        self.bwb = BuildWeightsBiases(self.n_classes)
-        self.bwb.build_cnn_model1_params()
-        self.weights, self.biases = self.bwb.weights, self.bwb.biases
+        self.bcn = BuildConvNet(self.cnn_architecture, self.n_classes, self.l2_beta)
+        self.bcn.build_convnet()
+        self.weights, self.biases = self.bcn.weights, self.bcn.biases
+        self.convolutional_neural_network = self.bcn.cnn_model
+        self.bcn.build_l2_reg()
+        self.l2_reg = self.bcn.l2_reg
 
         self.train_x = None
         self.train_y = None
 
         self.build_dataset()
-
-    def build_optimizer(self, cost_function):
-        if self.optimizer == 'GradientDescent':
-            print("Optimizer: GradientDescent")
-            return tf.train.GradientDescentOptimizer(self.learning_rate).minimize(cost_function)
-        elif self.optimizer == 'Adam':
-            print("Optimizer: Adam  ")
-            return tf.train.AdamOptimizer(self.learning_rate).minimize(cost_function)
 
     def build_dataset(self):
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
@@ -148,21 +138,14 @@ class Train:
 
         os.system("clear")
 
-        model, conv1 = convolutional_neural_network(x, self.weights, self.biases)
+        model = self.convolutional_neural_network(x, self.weights, self.biases)
 
         with tf.name_scope('cost_function'):
             cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-                logits=model, labels=labels)) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.weights['conv1']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.biases['conv1']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.weights['conv2']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.biases['conv2']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.weights['fcl']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.biases['fcl']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.weights['out']) +
-                             self.l2_reg_beta * tf.nn.l2_loss(self.biases['out']))
+                logits=model, labels=labels)) + self.l2_reg)
 
-        training_step = self.build_optimizer(cost_function)
+        print("Optimizer: Adam")
+        training_step = tf.train.AdamOptimizer(self.learning_rate).minimize(cost_function)
 
         sess.run(tf.global_variables_initializer())
 
@@ -175,8 +158,6 @@ class Train:
             tf.summary.scalar('testing_accuracy', testing_accuracy)
         with tf.name_scope('cost'):
             tf.summary.scalar('training_cost', cost_function)
-        with tf.name_scope('activations'):
-            tf.summary.image('conv1', conv1, max_outputs=500)
 
         write_op = tf.summary.merge_all()
         writer = tf.summary.FileWriter(workspace_dir+'user/logs/'+str(self.id_name), sess.graph)
@@ -211,11 +192,9 @@ class Train:
                 avr_training_accuracy = training_accuracy_/batch_iters
                 avr_testing_accuracy = testing_accuracy_/batch_iters
 
-                conv1_ = sess.run(conv1, feed_dict={x: test_x})
                 summary = sess.run(write_op, {training_accuracy: avr_training_accuracy,
                                               testing_accuracy: avr_testing_accuracy,
-                                              cost_function: training_cost,
-                                              conv1: conv1_})
+                                              cost_function: training_cost})
                 writer.add_summary(summary, epoch)
                 writer.flush()
                 print("Epoch ", epoch + 1, "   Training accuracy: ", float("%0.5f" % avr_training_accuracy),
@@ -227,22 +206,29 @@ class Train:
         self.store_model(sess)
         writer.close()
 
+    def write_metadata(self):
+        self.training_metadata_writer.update(id_name=self.id_name,
+                                             output_model_path=workspace_dir+'user/trained_models/' +
+                                             self.model_folder_name,
+                                             cnn_architecture=self.cnn_architecture)
+        self.training_metadata_writer.write()
+
     def augment_data_(self):
         augmented_data = tf.constant([], tf.float32, shape=[0, self.height, self.width, 3])
         augmented_labels = tf.constant([], tf.float32, shape=[0, self.n_classes])
-        for n_image, n_label in zip(range(self.X.shape[0]), range(self.Y.shape[0])):
-            flip_1 = tf.image.flip_up_down(self.X[n_image])
-            flip_2 = tf.image.flip_left_right(self.X[n_image])
-            flip_3 = tf.image.random_flip_up_down(self.X[n_image])
-            flip_4 = tf.image.random_flip_left_right(self.X[n_image])
+        for n_image, n_label in zip(range(self.train_x.shape[0]), range(self.train_y.shape[0])):
+            flip_1 = tf.image.flip_up_down(self.train_x[n_image])
+            flip_2 = tf.image.flip_left_right(self.train_x[n_image])
+            flip_3 = tf.image.random_flip_up_down(self.train_x[n_image])
+            flip_4 = tf.image.random_flip_left_right(self.train_x[n_image])
 
-            pre_data = tf.concat([tf.expand_dims(self.X[n_image], 0), tf.expand_dims(flip_1, 0),
+            pre_data = tf.concat([tf.expand_dims(self.train_x[n_image], 0), tf.expand_dims(flip_1, 0),
                                   tf.expand_dims(flip_2, 0), tf.expand_dims(flip_3, 0),
                                   tf.expand_dims(flip_4, 0)], 0)
 
-            pre_labels = tf.concat([tf.expand_dims(self.Y[n_label], 0), tf.expand_dims(self.Y[n_label], 0),
-                                    tf.expand_dims(self.Y[n_label], 0), tf.expand_dims(self.Y[n_label], 0),
-                                    tf.expand_dims(self.Y[n_label], 0)], 0)
+            pre_labels = tf.concat([tf.expand_dims(self.train_y[n_label], 0), tf.expand_dims(self.train_y[n_label], 0),
+                                    tf.expand_dims(self.train_y[n_label], 0), tf.expand_dims(self.train_y[n_label], 0),
+                                    tf.expand_dims(self.train_y[n_label], 0)], 0)
             augmented_data = tf.concat([augmented_data, tf.cast(pre_data, tf.float32)], 0)
             augmented_labels = tf.concat([augmented_labels, tf.cast(pre_labels, tf.float32)], 0)
 
@@ -269,17 +255,21 @@ class Train:
 
 class BuildWeightsBiases:
     def __init__(self, n_classes):
-        self.weights = {}
-        self.biases = {}
-
         self.n_classes = n_classes
 
+        self.weights = {}
+        self.biases = {}
+        self.cnn_model = None
+
     def build_cnn_model1_params(self):
+        from src.neural_network_models.convolutional.cnn_model1 import convolutional_neural_network
+        self.cnn_model = convolutional_neural_network
+
         with tf.name_scope('weights'):
             self.weights = {
                 'conv1': tf.Variable(tf.random_normal([5, 5, 3, 3]), name='conv1'),
                 'conv2': tf.Variable(tf.random_normal([3, 3, 3, 64]), name='conv2'),
-                'fcl': tf.Variable(tf.random_normal([2*2*64, 128]), name='fcl'),
+                'fcl': tf.Variable(tf.random_normal([7*7*64, 128]), name='fcl'),
                 'out': tf.Variable(tf.random_normal([128, self.n_classes]), name='out')
             }
         with tf.name_scope('biases'):
@@ -289,3 +279,73 @@ class BuildWeightsBiases:
                 'fcl': tf.Variable(tf.random_normal([128]), name='fcl'),
                 'out': tf.Variable(tf.random_normal([self.n_classes]), name='out')
             }
+
+    def build_alexnet_params(self):
+        from src.neural_network_models.convolutional.alexnet import convolutional_neural_network
+        self.cnn_model = convolutional_neural_network
+
+        with tf.name_scope('weights'):
+            self.weights = {
+                'conv1': tf.Variable(tf.random_normal([11, 11, 3, 96]), name='conv1'),
+                'conv2': tf.Variable(tf.random_normal([5, 5, 96, 256]), name='conv2'),
+                'conv3': tf.Variable(tf.random_normal([3, 3, 256, 384]), name='conv3'),
+                'conv4': tf.Variable(tf.random_normal([3, 3, 384, 384]), name='conv4'),
+                'conv5': tf.Variable(tf.random_normal([3, 3, 384, 256]), name='conv5'),
+                'fcl': tf.Variable(tf.random_normal([8 * 8 * 256, 4096]), name='fcl'),
+                'fcl2': tf.Variable(tf.random_normal([4096, 4096]), name='fcl2'),
+                'out': tf.Variable(tf.random_normal([4096, self.n_classes]), name='out')
+            }
+        with tf.name_scope('biases'):
+            self.biases = {
+                'conv1': tf.Variable(tf.random_normal([96]), name='conv1'),
+                'conv2': tf.Variable(tf.random_normal([256]), name='conv2'),
+                'conv3': tf.Variable(tf.random_normal([384]), name='conv3'),
+                'conv4': tf.Variable(tf.random_normal([384]), name='conv4'),
+                'conv5': tf.Variable(tf.random_normal([256]), name='conv5'),
+                'fcl': tf.Variable(tf.random_normal([4096]), name='fcl'),
+                'fcl2': tf.Variable(tf.random_normal([4096]), name='fcl2'),
+                'out': tf.Variable(tf.random_normal([self.n_classes]), name='out')
+            }
+
+
+class BuildConvNet(BuildWeightsBiases):
+    def __init__(self, cnn_architecture, n_classes, l2_beta):
+        self.cnn_architecture = cnn_architecture
+        self.n_classes = n_classes
+        self.l2_beta = l2_beta
+
+        BuildWeightsBiases.__init__(self, n_classes)
+
+        self.l2_reg = None
+
+    def build_convnet(self):
+        if self.cnn_architecture == "cnn_model1":
+            self.build_cnn_model1_params()
+        elif self.cnn_architecture == "alexnet":
+            self.build_alexnet_params()
+
+    def build_l2_reg(self):
+        if self.cnn_architecture == "cnn_model1":
+            self.l2_reg = (self.l2_beta * tf.nn.l2_loss(self.weights['conv1']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv1']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['conv2']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv2']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['fcl']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['fcl']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['out']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['out']))
+        elif self.cnn_architecture == "alexnet":
+            self.l2_reg = (self.l2_beta * tf.nn.l2_loss(self.weights['conv1']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv1']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['conv2']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv2']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['conv3']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv3']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['conv4']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv4']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['conv5']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['conv5']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['fcl']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['fcl2']) +
+                           self.l2_beta * tf.nn.l2_loss(self.weights['out']) +
+                           self.l2_beta * tf.nn.l2_loss(self.biases['out']))
