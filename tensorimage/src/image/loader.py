@@ -3,15 +3,16 @@ from progress import bar
 
 from src.man.writer import *
 from src.man.reader import *
-from src.man.id import ID
 from src.config import *
 
 
 class ImageLoader:
     def __init__(self,
+                 id_name,
                  dataset_name,
                  dataset_type):
         # Store parameter
+        self.id_name = id_name
         self.dataset_name = dataset_name
 
         if dataset_type == "training":
@@ -29,10 +30,7 @@ class ImageLoader:
         self.img_dims = []
         self.image_data = []
 
-        self.id_man = ID('dataset')
-        self.id_man.read()
-
-        self.MetaWriter = JSONWriter(str(int(self.id_man.id)+1), dataset_metafile_path)
+        self.metadata_writer = JSONWriter(self.id_name, dataset_metafile_path)
 
     def extract_image_data(self):
         loading_progress = bar.Bar("Loading images: ", max=len(self.image_paths))
@@ -55,5 +53,5 @@ class ImageLoader:
             self.img_dims.append(img.size)
 
     def write_metadata(self):
-        self.MetaWriter.update(path_file=self.path_file)
-        self.MetaWriter.write()
+        self.metadata_writer.update(path_file=self.path_file)
+        self.metadata_writer.write()
