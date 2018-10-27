@@ -9,14 +9,12 @@ from src.config import *
 from src.exceptions import *
 from src.man.reader import *
 from src.man.writer import *
-from src.man.id import ID
 
 
 class Train:
     def __init__(self,
-                 id_name: str,
-                 model_folder_name: str,
-                 model_name: str,
+                 data_name: str,
+                 training_name: str,
                  n_epochs,
                  learning_rate,
                  l2_regularization_beta,
@@ -25,20 +23,16 @@ class Train:
                  augment_data=False,
                  cnn_architecture='cnn_model1'):
         """
-        :param id_name: unique name which identifies which image data to read for training
-        :param model_folder_name: folder name where output trained model will be stored
-        :param model_name: actual model filename
+        :param data_name: unique name which identifies which image data to read for training
         :param n_epochs: number of epochs
         :param learning_rate: learning rate for optimizer
         :param l2_regularization_beta: value to use for L2 Regularization beta
-        :param optimizer: optimizer name to use for training
         :param train_test_split: proportion of data that will be used as testing set
         :param cnn_architecture: cnn architecture name (e.g: alexnet)
         """
         # Store parameter inputs
-        self.id_name = id_name
-        self.model_folder_name = model_folder_name
-        self.model_name = model_name
+        self.data_name = data_name
+        self.training_name = training_name
         self.n_epochs = int(n_epochs)
         self.learning_rate = float(learning_rate)
         self.train_test_split = float(train_test_split)
@@ -50,36 +44,30 @@ class Train:
             self.augment_data = False
         self.cnn_architecture = cnn_architecture
 
-        # Define necessary Objects
-        self.id_man = ID('training')
-        self.id_man.read()
-        self.training_id = self.id_man.id
+        self.training_metadata_writer = JSONWriter(self.training_name, training_metafile_path)
 
-        self.training_metadata_writer = JSONWriter(self.training_id, training_metafile_path)
-
-        self.id_name_metadata_reader = JSONReader(self.id_name, nid_names_metafile_path)
-        self.id_name_metadata_reader.bulk_read()
-        self.id_name_metadata_reader.select()
-        self.data_id = self.id_name_metadata_reader.selected_data["id"]
-
-        self.metadata_reader = JSONReader(str(self.data_id), dataset_metafile_path)
+        self.metadata_reader = JSONReader(self.data_name, dataset_metafile_path)
         self.metadata_reader.bulk_read()
         self.metadata_reader.select()
+        image_metadata = self.metadata_reader.selected_data
+        self.n_columns = image_metadata["n_columns"]
+        self.training_data_path = image_metadata["data_path"]
+        self.n_classes = image_metadata["n_classes"]
+        self.dataset_type = image_metadata["dataset_type"]
+        self.is_trainable()
+        self.data_len = image_metadata["data_len"]
+        self.width = image_metadata["width"]
+        self.height = image_metadata["height"]
+        self.dataset_name = image_metadata["dataset_name"]
 
-        # Store metadata in variables
-        self.n_columns = self.metadata_reader.selected_data["n_columns"]
-        self.training_data_path = self.metadata_reader.selected_data["data_path"]
-        self.n_classes = self.metadata_reader.selected_data["n_classes"]
-        self.trainable = self.metadata_reader.selected_data["trainable"]
-        self.data_len = self.metadata_reader.selected_data["data_len"]
-        self.width = self.metadata_reader.selected_data["width"]
-        self.height = self.metadata_reader.selected_data["height"]
+        self.model_folder_name = self.training_name+'_model'
 
         self.csv_reader = CSVReader(self.training_data_path)
-        self.is_trainable()
 
         self.X = None
         self.Y = None
+        self.train_x = None
+        self.train_y = None
 
         self.bcn = BuildConvNet(self.cnn_architecture, self.n_classes, self.l2_beta)
         self.bcn.build_convnet()
@@ -87,9 +75,6 @@ class Train:
         self.convolutional_neural_network = self.bcn.cnn_model
         self.bcn.build_l2_reg()
         self.l2_reg = self.bcn.l2_reg
-
-        self.train_x = None
-        self.train_y = None
 
         self.build_dataset()
 
@@ -160,7 +145,7 @@ class Train:
             tf.summary.scalar('training_cost', cost_function)
 
         write_op = tf.summary.merge_all()
-        writer = tf.summary.FileWriter(workspace_dir+'user/logs/'+str(self.id_name), sess.graph)
+        writer = tf.summary.FileWriter(workspace_dir+'user/logs/'+str(self.training_name), sess.graph)
         for epoch in range(self.n_epochs):
             estop = False
             training_accuracy_ = 0
@@ -207,10 +192,11 @@ class Train:
         writer.close()
 
     def write_metadata(self):
-        self.training_metadata_writer.update(id_name=self.id_name,
-                                             output_model_path=workspace_dir+'user/trained_models/' +
-                                             self.model_folder_name,
-                                             cnn_architecture=self.cnn_architecture)
+        self.training_metadata_writer.update(data_name=self.data_name,
+                                             model_folder_name=self.model_folder_name,
+                                             model_name=self.training_name,
+                                             cnn_architecture=self.cnn_architecture,
+                                             dataset_name=self.dataset_name)
         self.training_metadata_writer.write()
 
     def augment_data_(self):
@@ -235,13 +221,13 @@ class Train:
         return augmented_data, augmented_labels
 
     def is_trainable(self):
-        if not eval(self.trainable):
+        if self.dataset_type != 'training':
             raise DataNotTrainableError('Data is not trainable: {}'.format(self.training_data_path))
 
     def store_model(self, sess):
         saver = tf.train.Saver()
         saver.save(sess, workspace_dir + 'user/trained_models/' + self.model_folder_name
-                   + '/' + self.model_name)
+                   + '/' + self.training_name)
 
     def early_stop(self):
         early_stop = input("You have chosen to early stop the training process. Do you wish to proceed? [Y/n]")
@@ -249,7 +235,7 @@ class Train:
             print("Saving model...")
             return True
         else:
-            print("Continuing with training...")
+            print("Resuming training...")
             return False
 
 

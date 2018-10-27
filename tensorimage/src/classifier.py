@@ -5,7 +5,7 @@ import time
 import datetime
 
 from src.config import *
-from src.neural_network_models.convolutional.convolutional_neural_network import convolutional_neural_network
+from src.neural_network_models.convolutional.cnn_model1 import convolutional_neural_network
 from src.image.display import display_image
 from src.man.reader import *
 from src.man.mkdir import mkdir
@@ -13,31 +13,25 @@ from src.man.mkdir import mkdir
 
 class Predict:
     def __init__(self,
-                 id_name,
-                 model_folder_name,
-                 model_name,
-                 training_dataset_name,
+                 data_name,
+                 training_name,
+                 classification_name,
                  show_image: bool=False):
-        self.id_name = id_name
-        self.model_folder_name = model_folder_name
-        self.model_name = model_name
-        self.training_dataset_name = training_dataset_name
+        self.data_name = data_name
+        self.training_name = training_name
+        self.classification_name = classification_name
         try:
             self.show_image = eval(str(show_image))
         except NameError:
             self.show_image = False
 
-        self.raw_predictions = []
         self.predictions = []
+        self.final_predictions = []
 
-        self.id_name_metadata_reader = JSONReader(self.id_name, nid_names_metafile_path)
-        self.id_name_metadata_reader.bulk_read()
-        self.id_name_metadata_reader.select()
-        self.data_id = self.id_name_metadata_reader.selected_data["id"]
-        self.metadata_reader = JSONReader(str(self.data_id), dataset_metafile_path)
+        # Read unclassified data metadata
+        self.metadata_reader = JSONReader(self.data_name, dataset_metafile_path)
         self.metadata_reader.bulk_read()
         self.metadata_reader.select()
-
         image_metadata = self.metadata_reader.selected_data
         self.data_path = image_metadata["data_path"]
         self.width = image_metadata["width"]
@@ -45,10 +39,21 @@ class Predict:
         self.path_file = image_metadata["path_file"]
         self.prediction_dataset_name = image_metadata["dataset_name"]
 
+        # Read trained model metadata
+        self.training_metadata_reader = JSONReader(self.training_name, training_metafile_path)
+        self.training_metadata_reader.bulk_read()
+        self.training_metadata_reader.select()
+        training_metadata = self.training_metadata_reader.selected_data
+        self.model_path = training_metadata["model_folder_name"]
+        self.model_name = training_metadata["model_name"]
+        self.cnn_architecture = training_metadata["cnn_architecture"]
+        self.training_dataset_name = training_metadata["dataset_name"]
+        self.class_scores = training_metadata["class_scores"]
+        self.model_folder_name = self.model_path.split('/')[-1]
+
         timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S').replace('-', '_')
         timestamp = timestamp.replace(' ', '_')
         timestamp = timestamp.replace(':', '_')
-
         predictions_path = workspace_dir+'user/predictions/'+self.prediction_dataset_name
         mkdir(predictions_path)
         mkdir(predictions_path+'/'+self.model_folder_name)
@@ -59,7 +64,7 @@ class Predict:
                 self.model_folder_name + '/predictions_to_paths'+timestamp+'.csv']
 
         self.csv_dataset_reader = CSVReader(self.data_path)
-        self.class_id_reader = JSONReader(None, workspace_dir+'user/datasets/' +
+        self.class_id_reader = JSONReader(None, workspace_dir+'user/training_datasets/' +
                                           self.training_dataset_name + '/class_id.json')
 
         self.path_reader = TXTReader(self.path_file)
@@ -70,7 +75,7 @@ class Predict:
         self.class_id_reader.bulk_read()
         self.class_id = self.class_id_reader.bulk_data
 
-        self.model_restore = RestoreModel(self.model_folder_name, self.model_name)
+        self.model_restore = RestoreModel(self.model_path, self.model_name)
 
         self.X = None
         self.weights = None
@@ -86,21 +91,22 @@ class Predict:
 
     def predict(self):
         sess = tf.Session()
-        self.read_dataset()
-        self.model_restore.restore_cnn_model1_params(sess)
-        self.weights, self.biases = self.model_restore.weights, self.model_restore.biases
+        with sess.as_default():
+            self.read_dataset()
+            self.model_restore.restore_cnn_model1_params(sess)
+            self.weights, self.biases = self.model_restore.weights, self.model_restore.biases
 
-        x = tf.placeholder(tf.float32, [None, self.height, self.width, 3])
+            x = tf.placeholder(tf.float32, [None, self.height, self.width, 3])
 
-        model, conv1 = convolutional_neural_network(x, self.weights, self.biases)
+            model = convolutional_neural_network(x, self.weights, self.biases)
 
-        self.read_dataset()
-        self.X = sess.run(tf.reshape(self.X, [self.X.shape[0], self.height, self.width, 3]))
-        prediction = sess.run(model, feed_dict={x: self.X})
-        self.raw_predictions = np.ndarray.tolist(sess.run(tf.argmax(prediction, 1)))
+            self.read_dataset()
+            self.X = sess.run(tf.reshape(self.X, [self.X.shape[0], self.height, self.width, 3]))
+            predictions = model.eval(feed_dict={x: self.X})
+            self.final_predictions = np.ndarray.tolist(sess.run(tf.argmax(predictions, 1)))
 
     def match_class_id(self):
-        for rp in self.raw_predictions:
+        for rp in self.final_predictions:
             self.predictions.append(self.class_id[str(rp)])
 
     def write_predictions(self):
@@ -117,9 +123,10 @@ class Predict:
             writer = csv.writer(pathfile, delimiter=',')
             for image_n in range(len(self.paths)):
                 writer.writerow([self.paths[image_n], self.predictions[image_n]])
-        for image_n in range(len(self.paths)):
-            if self.show_image:
-                display_image(self.predictions[image_n], self.paths[image_n])
+        if self.show_image:
+            for image_n in range(len(self.paths)):
+                display_image(self.predictions[image_n],
+                              self.paths[image_n])
 
 
 class RestoreModel:
@@ -134,7 +141,7 @@ class RestoreModel:
         saver = tf.train.import_meta_graph(workspace_dir + 'user/trained_models/' +
                                            self.model_folder_name + '/' + self.model_name + '.meta')
         saver.restore(sess, tf.train.latest_checkpoint(workspace_dir + 'user/trained_models/' +
-                                                       self.model_folder_name + './'))
+                                                       self.model_folder_name + '/./'))
         with tf.name_scope('weights'):
             self.weights = {
                 'conv1': sess.run('weights/conv1:0'),
