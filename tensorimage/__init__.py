@@ -1,1 +1,1 @@
-name = 'nnir'
+__name__ = 'tensorimage'
