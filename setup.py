@@ -4,9 +4,9 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='nnir',
-    version='1.0.0',
-    description='User friendly machine learning image classification tool',
+    name='tensorimage',
+    version='1.1.0',
+    description='Machine learning image classification tool',
     long_description=long_description,
     author='TensorImage',
     author_email='tensor.image2@gmail.com',
