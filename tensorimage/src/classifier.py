@@ -45,7 +45,6 @@ class Predict:
         self.model_name = training_metadata["model_name"]
         self.cnn_architecture = training_metadata["cnn_architecture"]
         self.training_dataset_name = training_metadata["dataset_name"]
-        self.class_scores = training_metadata["class_scores"]
         self.model_folder_name = self.model_path.split('/')[-1]
 
         predictions_path = workspace_dir+'user/predictions/'+self.model_folder_name
