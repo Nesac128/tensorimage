@@ -1,8 +1,6 @@
 import tensorflow as tf
 import numpy as np
 import csv
-import time
-import datetime
 
 from src.config import *
 from src.neural_network_models.convolutional.cnn_model1 import convolutional_neural_network
@@ -37,7 +35,6 @@ class Predict:
         self.width = image_metadata["width"]
         self.height = image_metadata["height"]
         self.path_file = image_metadata["path_file"]
-        self.prediction_dataset_name = image_metadata["dataset_name"]
 
         # Read trained model metadata
         self.training_metadata_reader = JSONReader(self.training_name, training_metafile_path)
@@ -51,17 +48,14 @@ class Predict:
         self.class_scores = training_metadata["class_scores"]
         self.model_folder_name = self.model_path.split('/')[-1]
 
-        timestamp = datetime.datetime.fromtimestamp(time.time()).strftime('%Y-%m-%d %H:%M:%S').replace('-', '_')
-        timestamp = timestamp.replace(' ', '_')
-        timestamp = timestamp.replace(':', '_')
-        predictions_path = workspace_dir+'user/predictions/'+self.prediction_dataset_name
+        predictions_path = workspace_dir+'user/predictions/'+self.model_folder_name
         mkdir(predictions_path)
         mkdir(predictions_path+'/'+self.model_folder_name)
         self.prediction_filenames = \
-            [workspace_dir+'user/predictions/'+self.prediction_dataset_name + '/' +
-                self.model_folder_name + '/raw_predictions_'+timestamp+'.csv',
-                workspace_dir+'user/predictions/'+self.prediction_dataset_name + '/' +
-                self.model_folder_name + '/predictions_to_paths'+timestamp+'.csv']
+            [workspace_dir+'user/predictions/'+self.model_folder_name + '/' +
+                self.classification_name + '/raw_predictions_.csv',
+                workspace_dir+'user/predictions/'+self.model_folder_name + '/' +
+                self.classification_name + '/predictions_to_paths.csv']
 
         self.csv_dataset_reader = CSVReader(self.data_path)
         self.class_id_reader = JSONReader(None, workspace_dir+'user/training_datasets/' +
