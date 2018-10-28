@@ -12,7 +12,7 @@ def max_pool2d(x, kStrideX, kStrideY, kSizeX, kSizeY):
 def convolutional_neural_network(data, weights, biases):
     print("AlexNet Architecture")
 
-    # data = tf.image.resize_images(data, tf.constant([256, 256]))
+    data = tf.image.resize_images(data, tf.constant([227, 227]))
 
     with tf.name_scope('conv1_layer'):
         with tf.name_scope('conv1'):
