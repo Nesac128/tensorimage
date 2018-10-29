@@ -1,8 +1,9 @@
 import tensorflow as tf
 import numpy as np
+from scipy.ndimage import rotate
 
 
-class AugmentData:
+class AugmentImageData:
     def __init__(self, x, y, dims: tuple, n_classes: int, n_channels=3):
         self.x = x
         self.y = y
@@ -10,6 +11,7 @@ class AugmentData:
         self.n_classes = n_classes
         self.n_channels = n_channels
 
+        assert len(self.x.shape) == 4 and len(self.y.shape) == 4
         assert self.x.shape[0] == self.y.shape[0]
 
         self.n_images = self.x.shape[0]
@@ -17,7 +19,7 @@ class AugmentData:
     def _copy_xy(self):
         return np.copy(self.x), np.copy(self.y)
 
-    def flip_images(self):
+    def flip(self):
         augmented_data = tf.constant([], tf.float32, shape=[0, self.dims[0], self.dims[1], self.n_channels])
         augmented_labels = tf.constant([], tf.float32, shape=[0, self.n_classes])
         for image, label in zip(self.x, self.y):
@@ -62,4 +64,16 @@ class AugmentData:
             labels_copy[lb_n] = label
         return np.concatenate((self.x, images_copy)), np.concatenate((self.y, labels_copy))
 
-    
+    def rotate_images(self, *angles):
+        images_copy, labels_copy = self._copy_xy()
+        for image, label in zip(self.x, self.y):
+            image_rot90 = np.rot90(image, k=1)
+            image_backrot90 = np.rot90(image, k=-1)
+            image_rot180 = np.rot90(image, k=2)
+
+            images_copy = np.concatenate((images_copy, image_rot90, image_backrot90, image_rot180))
+            labels_copy = np.concatenate((labels_copy, label, label, label))
+            for angle in angles:
+                image_rot = rotate(image, float(angle))
+                images_copy = np.concatenate((images_copy, image_rot))
+                labels_copy = np.concatenate((labels_copy, label))
