@@ -1,6 +1,5 @@
-from tensorimage.src.data_augmentation.augment_data import AugmentImageData
+from tensorimage.src.train.data_augmentation_src import AugmentImageData
 import numpy as np
-from tensorimage.ops.data_augmentation import *
 
 
 class DataAugmentationBuilder:
