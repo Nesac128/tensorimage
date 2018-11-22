@@ -18,7 +18,7 @@ class Train:
                  n_epochs: int,
                  learning_rate: float,
                  l2_regularization_beta: float,
-                 architecture: classmethod,
+                 architecture: str,
                  data_augmentation_builder: tuple=(None, False),
                  batch_size: int = 32,
                  train_test_split: float = 0.2):
@@ -34,13 +34,13 @@ class Train:
         """
         self.data_name = data_name
         self.training_name = training_name
-        self.n_epochs = int(n_epochs)
-        self.learning_rate = float(learning_rate)
-        self.train_test_split = float(train_test_split)
-        self.l2_beta = float(l2_regularization_beta)
+        self.n_epochs = n_epochs
+        self.learning_rate = learning_rate
+        self.train_test_split = train_test_split
+        self.l2_beta = l2_regularization_beta
         self.architecture = architecture
         self.data_augmentation_builder = data_augmentation_builder
-        self.batch_size = int(batch_size)
+        self.batch_size = batch_size
 
         self.training_metadata_writer = JSONWriter(self.training_name, training_metafile_path)
 
@@ -75,7 +75,7 @@ class Train:
         self.augmented_test_y = None
 
         self.convnet_builder = ConvNetBuilder(self.architecture)
-        self.convolutional_neural_network = self.convnet_builder.start()
+        self.convolutional_neural_network = self.convnet_builder.build_convnet()
         self.l2_regularization_builder = L2RegularizationBuilder(self.architecture, self.l2_beta)
         self.l2_regularization = self.l2_regularization_builder.start()
 
@@ -147,9 +147,9 @@ class Train:
             testing_accuracy_ = 0
             training_cost = 0
             testing_cost = 0
-            for i in range(1, batch_iters+1):
-                x_, y = self._get_batch(i)
-                try:
+            try:
+                for i in range(1, batch_iters+1):
+                    x_, y = self._get_batch(i)
                     self.sess.run(training_step, feed_dict={x: x_, labels: y})
 
                     batch_training_accuracy = (self.sess.run(training_accuracy, feed_dict={x: x_, labels: y}))
@@ -161,8 +161,9 @@ class Train:
                     testing_accuracy_ += batch_testing_accuracy
                     training_cost += batch_training_cost
                     testing_cost += batch_testing_cost
-                except KeyboardInterrupt:
-                    print("You have chosen to early stop the training process.")
+            except KeyboardInterrupt:
+                print("\nYou have chosen to early stop the training process.")
+                if self._confirm_early_stop():
                     break
             avr_training_accuracy = training_accuracy_/batch_iters
             avr_testing_accuracy = testing_accuracy_/batch_iters
@@ -189,13 +190,26 @@ class Train:
         self.training_metadata_writer.update(data_name=self.data_name,
                                              model_folder_name=self.model_folder_name,
                                              model_name=self.training_name,
-                                             dataset_name=self.dataset_name)
+                                             dataset_name=self.dataset_name,
+                                             architecture=self.architecture)
         self.training_metadata_writer.write()
 
     def _store_model(self):
         saver = tf.train.Saver()
-        saver.save(self.sess, workspace_dir + 'user/trained_models/' + self.model_folder_name
+        saver.save(self.sess, base_trained_models_store_path + self.model_folder_name
                    + '/' + self.training_name)
+
+    def _confirm_early_stop(self):
+        confirmation = input("Confirm early stopping [Y/n]: ")
+        y = ['Y', 'y', 'yes', 'Yes']
+        n = ['N', 'n', 'no', 'No']
+        if confirmation in y:
+            return True
+        elif confirmation in n:
+            return False
+        else:
+            print("Invalid option!")
+            self._confirm_early_stop()
 
     @staticmethod
     def _one_hot_encode(dlabels):
