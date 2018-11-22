@@ -1,1 +1,1 @@
-__all__ = ["ops", "l2_regularization", "display_architecture"]
+__all__ = ["ops", "l2_regularization", "display_architecture", "models"]

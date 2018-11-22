@@ -1,1 +1,1 @@
-__name__ = 'tensorimage'
+__all__ = ["config", "trainer", "classifier"]
