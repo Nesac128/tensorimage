@@ -6,7 +6,7 @@ from tensorimage.config import *
 from tensorimage.src.image.display import display_image
 from tensorimage.src.file.reader import *
 from tensorimage.src.os.mkdir import mkdir
-from tensorimage.src.train.convnet_builder import ConvNetBuilder
+from tensorimage.src.convnet_builder import ConvNetBuilder
 from tensorimage.src.classify.restore_model import ModelRestorer
 
 

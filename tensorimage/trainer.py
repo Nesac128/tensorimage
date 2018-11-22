@@ -7,7 +7,7 @@ from sklearn.model_selection import train_test_split
 from tensorimage.config import *
 from tensorimage.src.file.reader import *
 from tensorimage.src.file.writer import *
-from tensorimage.src.train.convnet_builder import ConvNetBuilder
+from tensorimage.src.convnet_builder import ConvNetBuilder
 from tensorimage.src.train.l2_regularization import L2RegularizationBuilder
 
 
