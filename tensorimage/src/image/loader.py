@@ -1,9 +1,9 @@
 from PIL import Image
 from progress import bar
 
-from src.man.writer import *
-from src.man.reader import *
-from src.config import *
+from tensorimage.src.file.writer import *
+from tensorimage.src.file.reader import *
+from tensorimage.config import *
 
 
 class ImageLoader:
@@ -53,5 +53,6 @@ class ImageLoader:
             self.img_dims.append(img.size)
 
     def write_metadata(self):
-        self.metadata_writer.update(path_file=self.path_file)
+        self.metadata_writer.update(path_file=self.path_file,
+                                    n_images=self.n_images)
         self.metadata_writer.write()
