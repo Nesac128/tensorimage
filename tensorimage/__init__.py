@@ -1,1 +1,1 @@
-__all__ = ["config", "trainer", "classifier"]
+__all__ = ["config", "trainer", "classifier", "src"]
