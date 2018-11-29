@@ -4,9 +4,9 @@ with open('README.md', 'r') as fh:
     long_description = fh.read()
 
 setup(
-    name='tensorimage',
+    name='TensorImage',
     version='1.2.0',
-    description='Machine learning image classification tool',
+    description='Machine learning image classification library',
     long_description=long_description,
     author='TensorImage',
     author_email='tensor.image2@gmail.com',
@@ -17,6 +17,5 @@ setup(
                       'opencv-python>=3.4.0.12', 'progress'],
     classifiers=(
         "Programming Language :: Python :: 3",
-        "License :: OSI Approved :: GPL-2.0 License",
         "Operating System :: POSIX")
 )
