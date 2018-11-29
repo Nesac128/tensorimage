@@ -27,7 +27,9 @@ class ImageLoader:
         self.image_paths = reader.parsed_data
 
         self.n_images = len(self.image_paths)
-        self.img_dims = []
+
+        img = Image.open(self.image_paths[0])
+        self.img_dims = img.size
         self.image_data = []
 
         self.metadata_writer = JSONWriter(self.data_name, dataset_metafile_path)
