@@ -8,11 +8,11 @@ from tensorimage.config import *
 
 class ImageLoader:
     def __init__(self,
-                 id_name,
+                 data_name,
                  dataset_name,
                  dataset_type):
         # Store parameter
-        self.id_name = id_name
+        self.data_name = data_name
         self.dataset_name = dataset_name
 
         if dataset_type == "training":
@@ -30,7 +30,7 @@ class ImageLoader:
         self.img_dims = []
         self.image_data = []
 
-        self.metadata_writer = JSONWriter(self.id_name, dataset_metafile_path)
+        self.metadata_writer = JSONWriter(self.data_name, dataset_metafile_path)
 
     def extract_image_data(self):
         loading_progress = bar.Bar("Loading images: ", max=len(self.image_paths))
