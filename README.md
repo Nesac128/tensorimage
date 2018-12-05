@@ -1,25 +1,23 @@
-# TensorImage
-TensorImage is a machine learning tool to train image recognition models, by implementing Convolutional Neural Networks. Moreover, it offers the possibility to use these models to make predictions for thousands of unclassified images quickly and easily.
+__TensorImage__ is and open source package for image classification. There is a wide range of data augmentation operations that can be performed over training data to prevent overfitting and increase testing accuracy. It is easy to use and manage as all files, trained models and data are organized within a workspace directory, which you can change at any time in the configuration file, therefore being able have an indefinite amount of workspace directories for different purposes. Moreover, TensorImage can also be used to classify on thousands of images with trained image classification models. 
 
-## Getting started
-These are the steps you need to follow to get TensorImage working on your computer.
+## Installation
 ### Download TensorImage
-You can now [download](https://github.com/TensorImage/TensorImage/releases) the latest TensorImage version.
-### Install dependencies
-You have to install the dependencies that are required by TensorImage. From the terminal:
+You can download the latest TensorImage version [here](https://github.com/TensorImage/TensorImage/releases).
+### Installing dependencies
+From the terminal:
 ```shell
 # Access repository directory
 $ cd TensorImage/
 
-# Run install script
+# Run setup.py
 $ python3 setup.py
+# or install from requirements.txt
+$ pip3 install -r requirements.txt
 ```
-#### Open-source libraries used by TensorImage:
+#### Dependencies:
 - [TensorFlow](https://github.com/tensorflow/tensorflow)
 
 - [TensorBoard](https://github.com/tensorflow/tensorboard)
-
-- [Click](https://github.com/pallets/click)
 
 - [OpenCV Python](https://github.com/skvark/opencv-python)
 
@@ -48,7 +46,7 @@ workspace_dir = '/path/to/workspace/'
 tensorimage_path = '/path/to/repository/'
 ...
 ```
-Modify ```workspace_dir``` to the workspace folder that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file.
+Modify ```workspace_dir``` to the workspace directory that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file.
 
 To finish up with setting up TensorImage, from the terminal:
 ```shell
