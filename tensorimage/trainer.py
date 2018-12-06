@@ -1,5 +1,6 @@
 import tensorflow as tf
 import numpy as np
+import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
@@ -80,6 +81,9 @@ class Train:
         self.l2_regularization = self.l2_regularization_builder.start()
 
         self.sess = tf.Session()
+
+        self.final_testing_accuracy = None
+        self.final_testing_cost = None
 
     def build_dataset(self):
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
@@ -177,8 +181,9 @@ class Train:
                 print("Epoch: ", epoch, "   Training accuracy = ", float("%0.5f" % avr_training_accuracy),
                       "   Testing accuracy = ", float("%0.5f" % avr_testing_accuracy), "   Training cost = ",
                       training_cost, "   Testing cost = ", testing_cost)
+            self.final_testing_accuracy = avr_testing_accuracy
+            self.final_testing_cost = testing_cost
 
-        self._store_model()
         self._write_metadata()
         writer.close()
 
@@ -194,7 +199,7 @@ class Train:
                                              architecture=self.architecture)
         self.training_metadata_writer.write()
 
-    def _store_model(self):
+    def store_model(self):
         saver = tf.train.Saver()
         saver.save(self.sess, base_trained_models_store_path + self.model_folder_name
                    + '/' + self.training_name)
@@ -218,3 +223,55 @@ class Train:
         one_hot_encode = np.zeros((n_labels, n_unique_labels))
         one_hot_encode[np.arange(n_labels), dlabels] = 1
         return one_hot_encode
+
+
+class ClusterTrain:
+    def __init__(self, **trainers):
+        """
+        :param trainers: Train class objects
+        """
+        self.trainers = trainers
+        self.trainer_data = {}
+        for name in list(self.trainers.keys()):
+            self.trainer_data[name] = {}
+            self.trainer_data[name]["completed"] = False
+        self.in_training = []
+
+    def train(self):
+        for (n, trainer), name in zip(enumerate(list(self.trainers.values())), list(self.trainers.keys())):
+            if (n+1) <= os.cpu_count():
+                self.train_in_cpu(trainer, n, name)
+            else:
+                while True:
+                    for trainer_ in self.in_training:
+                        if self.trainer_data[trainer_]["completed"]:
+                            self.train_in_cpu(trainer, n, name)
+        return True
+
+    def train_in_cpu(self, trainer, n, name):
+        self.in_training.append(name)
+        with tf.device('/cpu:' + str(n)):
+            trainer.train()
+        self.trainer_data[name]["completed"] = True
+        self.trainer_data[name]["testing_accuracy"] = trainer.final_testing_accuracy
+        self.trainer_data[name]["testing_cost"] = trainer.final_testing_cost
+        self.trainer_data[name]["n_epochs"] = trainer.n_epochs
+        self.trainer_data[name]["learning_rate"] = trainer.learning_rate
+        self.trainer_data[name]["l2_regularization_beta"] = trainer.l2_beta
+        self.trainer_data[name]["train_test_split"] = trainer.train_test_split
+        self.trainer_data[name]["architecture"] = trainer.architecture
+        self.trainer_data[name]["batch_size"] = trainer.batch_size
+        del self.in_training[self.in_training.index(name)]
+
+    def get_results(self, top_n=1):
+        trainer_performance = {}
+
+        max_accuracy = 0
+        for n, trainer_data in enumerate(list(self.trainer_data.values())):
+            if trainer_data["testing_accuracy"] > max_accuracy:
+                max_accuracy = trainer_data["testing_accuracy"]
+                trainer_performance[n+1] = trainer_data
+
+        for tn, trainer in range(1, top_n+1), self.trainers:
+            trainer.store_model()
+            yield trainer_performance[tn]
