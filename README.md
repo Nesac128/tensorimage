@@ -287,4 +287,4 @@ classifier.predict()
 classifier.write_predictions()
 ```
 # License
-TensorImage is licensed under the [GPL-2.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
+TensorImage is licensed under the [GPL-3.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
