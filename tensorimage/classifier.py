@@ -10,27 +10,29 @@ from tensorimage.src.convnet_builder import ConvNetBuilder
 from tensorimage.src.classify.restore_model import ModelRestorer
 
 
-class Predict:
+class Classifier:
     def __init__(self,
                  data_name,
                  training_name,
                  classification_name,
-                 show_image: bool=False):
+                 show_images: tuple = (False, 10)):
         """
         :param data_name: name which was used as data_name when extracting the unclassified data from image dataset;
         used to identify the data to classify
         :param training_name: name which was used as training_name when training an image classification model; used to
         identify the model to use for carrying out the predictions
         :param classification_name: name that will be used to organize the output predictions in your workspace
-        :param show_image: boolean specifying on whether to display all of the images with class predictions
+        :param show_images: boolean specifying on whether to display all of the images with class predictions
         """
         self.data_name = data_name
         self.training_name = training_name
         self.classification_name = classification_name
         try:
-            self.show_image = eval(str(show_image))
+            self.show_images = eval(str(show_images[0]))
+            self.max_images = show_images[1]
         except NameError:
-            self.show_image = False
+            self.show_images = False
+            self.max_images = show_images[1]
 
         self.predictions = []
         self.final_predictions = []
@@ -110,7 +112,7 @@ class Predict:
             predictions = model.eval(feed_dict={x: self.X})
             self.final_predictions = np.ndarray.tolist(self.sess.run(tf.argmax(predictions, 1)))
             self._match_class_id()
-
+    
     def write_predictions(self):
         # Write image data in new file with predicted classes
         for image_n in range(len(self.list_X)):
@@ -125,10 +127,10 @@ class Predict:
             writer = csv.writer(pathfile, delimiter=',')
             for n in range(self.n_images):
                 writer.writerow([self.image_paths[n], self.predictions[n]])
-        if self.show_image:
-            for n in range(self.n_images):
-                display_image(self.predictions[n],
-                              self.image_paths[n])
+        if self.show_images:
+            for n in zip(range(self.n_images), range(self.max_images)):
+                display_image(self.predictions[n[0]],
+                              self.image_paths[n[0]])
 
     def _match_class_id(self):
         for rp in self.final_predictions:
