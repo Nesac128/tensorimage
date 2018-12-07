@@ -186,6 +186,12 @@ trainer.build_dataset()
 trainer.train()
 trainer.store_model()
 ```
+The trained image classification model will be stored in the path:
+```shell
+workspace_dir/user/trained_models/training_name
+# workspace_dir is the absolute path to your workspace directory, and training_name is the training_name that was used for this specific training operation
+```
+
 ### Available architectures
 The available architectures that can be passed to the ```Train()``` class `architecture` parameter are:
 - RosNet
@@ -206,21 +212,79 @@ tb.main()
 ```
 ## Training clusters
 TensorImage can also be used to perform multiple training operations at once on different CPUs, only storing the models based on the final testing accuracy, which is helpful for feature engineering, as it will yield the top performers with the hyperparameters that were used.
+```python
+from tensorimage.trainer import *
+from tensorimage.src.data_augmentation_ops import *
+from tensorimage.src.data_augmentation_builder import DataAugmentationBuilder
 
+
+data_name = 'MNIST_training_data_1' # data_name assigned to extracted data previously # data_name is the same for all training_names
+
+# Training operation 1 (without augmentation)
+training_name_1 = 'MNIST_train_op_1' # training_name assigned to this specific training operation
+n_epochs_1 = 600
+learning_rate_1 = 0.08
+l2_regularization_beta_1 = 0.05 # Beta value for L2 Regularization (to prevent overfitting)
+architecture_1 = 'RosNet' # Other CNN architectures are also available
+batch_size_1 = 32
+train_test_split_1 = 0.2
+
+trainer1 = Train(data_name, training_name_1, n_epochs_1, learning_rate_1, l2_regularization_beta_1, architecture_1, data_augmentation_builder=(None, False), batch_size=batch_size_1, train_test_split=train_test_split_1)
+
+# Training operation 2 (with data augmentation)
+training_name_2 = 'MNIST_train_op_2'
+n_epochs_2 = 1200
+learning_rate_2 = 0.09
+l2_regularization_beta_2 = 0.08 # Beta value for L2 Regularization (to prevent overfitting)
+architecture_2 = 'RosNet' # Other CNN architectures are also available
+batch_size_2 = 32
+train_test_split_2 = 0.3
+
+# Building data augmentation operations
+# Pepper-salt noise
+salt_vs_pepper = 0.1
+amount = 0.0004
+pepper_salt_noise_op = AddPepperSaltNoise(salt_vs_pepper=salt_vs_pepper, amount=amount)
+
+# Image rotation
+image_rotation_op = RotateImages(5,10,15,20,25,30)
+
+data_augmentation_builder = DataAugmentationBuilder(pepper_salt_noise_op, image_rotation_op)
+
+trainer2 = Train(data_name, training_name_2, n_epochs_2, learning_rate_2, l2_regularization_beta_2, architecture_2, data_augmentation_builder=(data_augmentation_builder, True), batch_size=batch_size_2, train_test_split=train_test_split_2)
+
+cluster_trainer = ClusterTrain(trainer1=trainer1, trainer2=trainer2)
+cluster_trainer.train()
+results = cluster_trainer.get_results(top_n=1)
+print(results)
+```
+The ```top_n``` parameter means how many top performers ```cluster_trainer.get_results()``` will yield, which in this case is 1, as only 2 trainers with different hyperparameters (and data augmentation or not) are being compared. However, if you are comparing 10 different trainers, you may want to receive the top 3 performers based on testing accuracy. The output should be the following:
+```python
+{"trainer1": {
+   "completed": True,
+   "testing_accuracy": 0.97, # Final testing accuracy
+   "testing_cost": 38, # Final testing cost
+   "n_epochs": 1000, # Epochs used by this trainer
+   "learning_rate": 0.09, # Learning rate used
+   "l2_regularization_beta": 0.08 # L2 Regularization beta value used
+   "train_test_split": 0.3, # Train-test split used
+   "architecture": "RosNet" # ConvNet architecture used
+   "batch_size": 32 # Batch size used
+   }}
+```
 ## Classification 
 ```python
-from tensorimage.tensorimage.classifier import Predict
+from tensorimage.classifier import Classifier
 
 data_name = 'MNIST_unclassified_data_1' # data_name assigned to extracted data from MNIST unclassified dataset
 training_name = 'MNIST_train_op_1' # training_name assigned to training operation, will be used to identify the trained model
 classification_name = 'MNIST_classify_op_1' # Unique name assigned to this specific classification operation
-show_images = True # Specifies if images with labels will be displayed when classification ends (not recommended if classifying on many images)
+show_images = (True, 20) # Specifies if images with labels will be displayed, and the maximum amount of images to display
 
-classifier = Predict(data_name, training_name, classification_name, show_images=show_images)
+classifier = Classifier(data_name, training_name, classification_name, show_images=show_images)
 classifier.build_dataset()
 classifier.predict()
 classifier.write_predictions()
 ```
-When the above code 
-## License
+# License
 TensorImage is licensed under the [GPL-2.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
