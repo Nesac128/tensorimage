@@ -1,4 +1,4 @@
-from tensorimage.tensorimage.src.data_augmentation.data_augmentation_src import AugmentImageData
+from tensorimage.src.data_augmentation.data_augmentation_src import AugmentImageData
 import numpy as np
 
 

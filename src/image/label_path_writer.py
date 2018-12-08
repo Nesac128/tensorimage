@@ -2,8 +2,8 @@ import os
 import json
 from progress import bar
 
-from tensorimage.tensorimage.config import workspace_dir
-from tensorimage.tensorimage.src.os.mkdir import mkdir
+from tensorimage.src.config import workspace_dir
+from tensorimage.src.os.mkdir import mkdir
 
 
 def write_unclassified_dataset_paths(dataset_path, dataset_name):

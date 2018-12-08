@@ -1,4 +1,4 @@
-from tensorimage.tensorimage.src.train import models
+from tensorimage.src.train import models
 
 
 architectures = [

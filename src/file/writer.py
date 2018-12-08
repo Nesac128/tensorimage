@@ -1,6 +1,6 @@
 import csv
 import json
-from tensorimage.tensorimage.src.file.reader import JSONReader
+from tensorimage.src.file.reader import JSONReader
 
 
 class JSONWriter:

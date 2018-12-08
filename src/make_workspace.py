@@ -1,6 +1,6 @@
-from tensorimage.tensorimage.config import workspace_dir
-from tensorimage.tensorimage.src.os.mkdir import mkdir
-from tensorimage.tensorimage.src.os.make_file import make_json_file
+from tensorimage.src.config import workspace_dir
+from tensorimage.src.os.mkdir import mkdir
+from tensorimage.src.os.make_file import make_json_file
 
 
 def make_workspace():
