@@ -8,13 +8,9 @@ From the terminal:
 ```shell
 # Access repository directory
 $ cd TensorImage/
-
-# Run setup.py
-$ python3 setup.py
-# or install from requirements.txt
 $ pip3 install -r requirements.txt
 ```
-### Dependencies:
+### Dependencies
 - [TensorFlow](https://github.com/tensorflow/tensorflow)
 
 - [TensorBoard](https://github.com/tensorflow/tensorboard)
@@ -30,6 +26,8 @@ $ pip3 install -r requirements.txt
 - [Sci-kit learn](https://github.com/scikit-learn/scikit-learn)
 
 - [Progress](https://github.com/Xfennec/progress)
+
+- [Scipy](https://github.com/scipy/scipy)
 
 ## Configure TensorImage
 In order to get TensorImage working, you must adjust the configuration to your computer. From the terminal:
@@ -72,7 +70,7 @@ All training datasets must have the following structure:
    |   image3.jpg  (image)
    |   ...         (rest of images)
 ```
-## Unclassified datasets:
+## Unclassified datasets
 All unclassified datasets must have the following structure:
 ```
 +-- your_dataset  (directory)
@@ -88,49 +86,45 @@ All unclassified datasets must have the following structure:
 ## Creating a workspace directory
 Assuming you have the workspace directory set in ```config.py```:
 ```python
-from tensorimage import make_workspace as mw
+import tensorimage as ti
 
-mw.make_workspace()
+ti.src.make_workspace()
 ```
 ## Adding a training image dataset
 ```python
-from tensorimage.tensorimage.src.image.label_path_writer import write_training_dataset_paths, write_labels
-import tensorimage.tensorimage.src.image.loader as iml
-import tensorimage.tensorimage.src.image.writer as iw
+import tensorimage as ti
 
 dataset_path = '/home/user/My training datasets/MNIST/' # Path to training dataset with images, should have structure as specified in the previous section
 dataset_name = 'MNIST_training_images'
 data_name = 'MNIST_training_data_1' # Unique name assigned to the specific set of data that will be created by running this code once. It will be used later to specify what data to use for training
 
-write_training_dataset_paths(dataset_path, dataset_name)
-write_labels(dataset_path, dataset_name)
-image_loader = iml.ImageLoader(data_name, dataset_name, 'training')
+ti.src.image.label_path_writer.write_training_dataset_paths(dataset_path, dataset_name)
+ti.src.image.label_path_writer.write_labels(dataset_path, dataset_name)
+image_loader = ti.src.image.loader.ImageLoader(data_name, dataset_name, 'training')
 image_loader.extract_image_data()
-image_writer = iw.TrainingDataWriter(image_loader.image_data, data_name, dataset_name, image_loader.img_dims)
+image_writer = ti.src.image.writer.TrainingDataWriter(image_loader.image_data, data_name, dataset_name, image_loader.img_dims)
 image_writer.write_image_data()
 ```
 
 ## Adding an unclassified image dataset
 ```python
-from tensorimage.tensorimage.src.image.label_path_writer import write_unclassified_dataset_paths
-import tensorimage.tensorimage.src.image.loader as iml
-import tensorimage.tensorimage.src.image.writer as iw
+import tensorimage as ti
 
 dataset_path = '/home/user/My unclassified datasets/MNIST/'
 dataset_name = 'MNIST_unclassified_images'
 data_name = 'MNIST_unclassified_data_1'
 
-write_unclassified_dataset_paths(dataset_path, dataset_name)
-image_loader = iml.ImageLoader(data_name, dataset_name, 'unclassified')
+ti.src.image.label_path_writer.write_unclassified_dataset_paths(dataset_path, dataset_name)
+image_loader = ti.src.image.loader.ImageLoader(data_name, dataset_name, 'unclassified')
 image_loader.extract_image_data()
-image_writer = iw.DataWriter(image_loader.image_data, data_name, dataset_name, image_loader.img_dims)
+image_writer = ti.src.image.writer.DataWriter(image_loader.image_data, data_name, dataset_name, image_loader.img_dims)
 image_writer.write_image_data()
 ```
 
 ## Training
 ### Without data augmentation
 ```python
-from tensorimage.trainer import Train
+import tensorimage as ti
 
 data_name = 'MNIST_training_data_1' # data_name assigned to extracted data previously
 training_name = 'MNIST_train_op_1' # Unique name for 1 specific training operation that will be used to identify trained models and other information for classification
@@ -141,7 +135,7 @@ architecture = 'RosNet' # Other CNN architectures are also available
 batch_size = 32
 train_test_split = 0.2
 
-trainer = Train(data_name, training_name, n_epochs, learning_rate, l2_regularization_beta, architecture, data_augmentation_builder=(None, False), batch_size=batch_size, train_test_split=train_test_split)
+trainer = ti.src.trainer.Train(data_name, training_name, n_epochs, learning_rate, l2_regularization_beta, architecture, data_augmentation_builder=(None, False), batch_size=batch_size, train_test_split=train_test_split)
 trainer.build_dataset()
 trainer.train()
 trainer.store_model()
@@ -149,9 +143,7 @@ trainer.store_model()
 
 ### With data augmentation
 ```python
-from tensorimage.trainer import Train
-from tensorimage.src.data_augmentation.data_augmentation_ops import *
-from tensorimage.src.data_augmentation.data_augmentation_builder import DataAugmentationBuilder
+import tensorimage as ti
 
 data_name = 'MNIST_training_data_1' # data_name assigned to extracted data previously
 training_name = 'MNIST_train_op_1' # Unique name for 1 specific training operation that will be used to identify trained models and other information for classification
@@ -165,23 +157,23 @@ train_test_split = 0.2
 There are many data augmentation operations which you can perform on the training data. You can apply all of them to your training data, or just one, or none. You must pass the operation classes, with any required parameters, to the ```DataAugmentationBuilder()``` class, which will then be passed to the ```Train()``` class. The script continues below:
 ```python
 # Image flipping
-image_flipper_op = FlipImages()
+image_flipper_op = ti.src.data_augmentation.data_augmentation_ops.FlipImages()
 
 # Salt-pepper noise
 salt_vs_pepper = 0.1
 amount = 0.0004
-pepper_salt_noise_op = AddSaltPepperNoise(salt_vs_pepper=salt_vs_pepper, amount=amount)
+pepper_salt_noise_op = ti.src.data_augmentation.data_augmentation_ops.AddSaltPepperNoise(salt_vs_pepper=salt_vs_pepper, amount=amount)
 
 # Lighting modification
 max_delta = 0.8
-lighting_modification_op = ModifyLighting(max_delta)
+lighting_modification_op = ti.src.data_augmentation.data_augmentation_ops.ModifyLighting(max_delta)
 
 # Image rotation
-image_rotation_op = RotateImages(10,20,30,40,50,60,70,80,90,100) # Parameters are *args specifying on which angles to rotate images
+image_rotation_op = ti.src.data_augmentation.data_augmentation_ops.RotateImages(10,20,30,40,50,60,70,80,90,100) # Parameters are *args specifying on which angles to rotate images
 
-data_augmentation_builder = DataAugmentationBuilder(image_flipper_op, pepper_salt_noise_op, lighting_modification_op, image_rotation_op)
+data_augmentation_builder = ti.src.data_augmentation.data_augmentation_builder.DataAugmentationBuilder(image_flipper_op, pepper_salt_noise_op, lighting_modification_op, image_rotation_op)
 
-trainer = Train(data_name, training_name, n_epochs, learning_rate, l2_regularization_beta, architecture, data_augmentation_builder=(data_augmentation_builder, True), batch_size=batch_size, train_test_split=train_test_split)
+trainer = ti.src.trainer.Train(data_name, training_name, n_epochs, learning_rate, l2_regularization_beta, architecture, data_augmentation_builder=(data_augmentation_builder, True), batch_size=batch_size, train_test_split=train_test_split)
 trainer.build_dataset()
 trainer.train()
 trainer.store_model()
@@ -189,7 +181,6 @@ trainer.store_model()
 The trained image classification model will be stored in the path:
 ```shell
 workspace_dir/user/trained_models/training_name
-# workspace_dir is the absolute path to your workspace directory, and training_name is the training_name that was used for this specific training operation
 ```
 
 ### Available architectures
@@ -213,6 +204,7 @@ tb.main()
 ## Training clusters
 TensorImage can also be used to perform multiple training operations at once on different CPUs, only storing the models based on the final testing accuracy, which is helpful for feature engineering, as it will yield the top performers with the hyperparameters that were used.
 ```python
+import tensorimage as ti
 from tensorimage.trainer import *
 from tensorimage.src.data_augmentation_ops import *
 from tensorimage.src.data_augmentation_builder import DataAugmentationBuilder
@@ -229,7 +221,7 @@ architecture_1 = 'RosNet' # Other CNN architectures are also available
 batch_size_1 = 32
 train_test_split_1 = 0.2
 
-trainer1 = Train(data_name, training_name_1, n_epochs_1, learning_rate_1, l2_regularization_beta_1, architecture_1, data_augmentation_builder=(None, False), batch_size=batch_size_1, train_test_split=train_test_split_1)
+trainer1 = ti.src.trainer.Train(data_name, training_name_1, n_epochs_1, learning_rate_1, l2_regularization_beta_1, architecture_1, data_augmentation_builder=(None, False), batch_size=batch_size_1, train_test_split=train_test_split_1)
 
 # Training operation 2 (with data augmentation)
 training_name_2 = 'MNIST_train_op_2'
@@ -249,11 +241,11 @@ pepper_salt_noise_op = AddPepperSaltNoise(salt_vs_pepper=salt_vs_pepper, amount=
 # Image rotation
 image_rotation_op = RotateImages(5,10,15,20,25,30)
 
-data_augmentation_builder = DataAugmentationBuilder(pepper_salt_noise_op, image_rotation_op)
+data_augmentation_builder = ti.src.data_augmentation.data_augmentation_builder.DataAugmentationBuilder(pepper_salt_noise_op, image_rotation_op)
 
-trainer2 = Train(data_name, training_name_2, n_epochs_2, learning_rate_2, l2_regularization_beta_2, architecture_2, data_augmentation_builder=(data_augmentation_builder, True), batch_size=batch_size_2, train_test_split=train_test_split_2)
+trainer2 = ti.src.trainer.Train(data_name, training_name_2, n_epochs_2, learning_rate_2, l2_regularization_beta_2, architecture_2, data_augmentation_builder=(data_augmentation_builder, True), batch_size=batch_size_2, train_test_split=train_test_split_2)
 
-cluster_trainer = ClusterTrain(trainer1=trainer1, trainer2=trainer2)
+cluster_trainer = ti.src.trainer.ClusterTrain(trainer1=trainer1, trainer2=trainer2)
 cluster_trainer.train()
 results = cluster_trainer.get_results(top_n=1)
 print(results)
@@ -274,17 +266,21 @@ The ```top_n``` parameter means how many top performers ```cluster_trainer.get_r
 ```
 ## Classification 
 ```python
-from tensorimage.classifier import Classifier
+import tensorimage as ti
 
 data_name = 'MNIST_unclassified_data_1' # data_name assigned to extracted data from MNIST unclassified dataset
 training_name = 'MNIST_train_op_1' # training_name assigned to training operation, will be used to identify the trained model
 classification_name = 'MNIST_classify_op_1' # Unique name assigned to this specific classification operation
 show_images = (True, 20) # Specifies if images with labels will be displayed, and the maximum amount of images to display
 
-classifier = Classifier(data_name, training_name, classification_name, show_images=show_images)
+classifier = ti.src.classifier.Classifier(data_name, training_name, classification_name, show_images=show_images)
 classifier.build_dataset()
 classifier.predict()
 classifier.write_predictions()
+```
+The final predictions for all of the unclassified images will be stored in the path:
+```shell
+workspace_dir/user/predictions/training_name/classification_name/
 ```
 # License
 TensorImage is licensed under the [GPL-3.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
