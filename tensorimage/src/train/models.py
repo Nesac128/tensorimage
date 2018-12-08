@@ -1,6 +1,6 @@
-from tensorimage.src.train.ops import *
-from tensorimage.src.weights_initializer import init_weights
-from tensorimage.src.train.display_architecture import display_architecture
+from tensorimage.tensorimage.src.train.ops import *
+from tensorimage.tensorimage.src.weights_initializer import init_weights
+from tensorimage.tensorimage.src.train.display_architecture import display_architecture
 
 
 class RosNet:

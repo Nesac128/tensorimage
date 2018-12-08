@@ -5,11 +5,11 @@ from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-from tensorimage.config import *
-from tensorimage.src.file.reader import *
-from tensorimage.src.file.writer import *
-from tensorimage.src.convnet_builder import ConvNetBuilder
-from tensorimage.src.train.l2_regularization import L2RegularizationBuilder
+from tensorimage.tensorimage.config import *
+from tensorimage.tensorimage.src.file.reader import *
+from tensorimage.tensorimage.src.file.writer import *
+from tensorimage.tensorimage.src.convnet_builder import ConvNetBuilder
+from tensorimage.tensorimage.src.train.l2_regularization import L2RegularizationBuilder
 
 
 class Train:

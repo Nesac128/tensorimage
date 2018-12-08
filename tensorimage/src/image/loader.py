@@ -1,9 +1,9 @@
 from PIL import Image
 from progress import bar
 
-from tensorimage.src.file.writer import *
-from tensorimage.src.file.reader import *
-from tensorimage.config import *
+from tensorimage.tensorimage.src.file.writer import *
+from tensorimage.tensorimage.src.file.reader import *
+from tensorimage.tensorimage.config import *
 
 
 class ImageLoader:

@@ -1,10 +1,10 @@
 from numpy import unique
 from progress import bar
 
-from tensorimage.src.file.writer import *
-from tensorimage.src.file.reader import *
-from tensorimage.config import *
-from tensorimage.src.os.mkdir import mkdir
+from tensorimage.tensorimage.src.file.writer import *
+from tensorimage.tensorimage.src.file.reader import *
+from tensorimage.tensorimage.config import *
+from tensorimage.tensorimage.src.os.mkdir import mkdir
 
 
 class DataWriter:

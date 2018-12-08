@@ -1,6 +1,6 @@
 import csv
 import json
-from tensorimage.src.file.reader import JSONReader
+from tensorimage.tensorimage.src.file.reader import JSONReader
 
 
 class JSONWriter:
@@ -65,15 +65,3 @@ class TXTWriter:
         with open(self.file_path, 'a') as txtfile:
             for inst in data:
                 txtfile.write(inst+'\n')
-
-
-
-
-
-
-
-
-
-
-
-
