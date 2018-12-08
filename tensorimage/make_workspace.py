@@ -28,6 +28,3 @@ def make_workspace():
             "1": {"id": 0},
             "2": {"id": 0},
             "3": {"id": 0}}) if 'id.' in file_path else make_json_file(file_path, {})
-
-
-__version__ = 'v1.2.0'
