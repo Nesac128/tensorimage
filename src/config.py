@@ -1,8 +1,16 @@
-# User configurations
-workspace_dir = '/path/to/workspace/'  # Note the / at the end
-tensorimage_path = '/path/to/tensorimage/'  # Note the / at the end
+import tensorimage.src.file.reader as tsfr
+import os
 
-predictions_base_filename = 'predictions'
+file_reader = tsfr.JSONReader("user", os.getcwd()+'/config.json')
+file_reader.bulk_read()
+file_reader.select()
+data = file_reader.selected_data
+
+# User configurations
+workspace_dir = data["workspace_dir"]
+tensorimage_path = data["tensorimage_path"]
+
+predictions_base_filename = data["predictions_base_filename"]
 
 # Program configurations
 training_metafile_path = workspace_dir+'metadata/training/meta.json'
