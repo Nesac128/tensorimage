@@ -1,13 +1,21 @@
-__TensorImage__ is and open source package for image classification. There is a wide range of data augmentation operations that can be performed over training data to prevent overfitting and increase testing accuracy. It is easy to use and manage as all files, trained models and data are organized within a workspace directory, which you can change at any time in the configuration file, therefore being able have an indefinite amount of workspace directories for different purposes. Moreover, TensorImage can also be used to classify on thousands of images with trained image classification models. 
+__TensorImage__ is and open source package for image classification. It has a wide range of data augmentation operations that can be performed over training data to prevent overfitting and increase testing accuracy. 
+
+TensorImage is easy to use and manage as all files, trained models and data are organized within a workspace directory, which you can change at any time in the configuration file, therefore being able have an indefinite amount of workspace directories for different purposes. 
+
+Moreover, TensorImage can also be used to classify on thousands of images with trained image classification models. 
 
 # Installation
 ## Download TensorImage
-You can download the latest TensorImage version [here](https://github.com/TensorImage/TensorImage/releases).
+You can download the latest TensorImage version [here](https://github.com/TensorImage/TensorImage/releases). Once downloaded, extract the compressed folder into ```~/.local/lib/python3.6/site-packages/```. After that, from the terminal:
+```shell
+$ cd ~/.local/lib/python3.6/site-packages/
+$ mv tensorimage-master tensorimage
+```
 ## Installing dependencies
 From the terminal:
 ```shell
 # Access repository directory
-$ cd TensorImage/
+$ cd ~/.local/lib/python3.6/site-packages/tensorimage/
 $ pip3 install -r requirements.txt
 ```
 ### Dependencies
@@ -30,23 +38,20 @@ $ pip3 install -r requirements.txt
 - [Scipy](https://github.com/scipy/scipy)
 
 ## Configure TensorImage
-In order to get TensorImage working, you must adjust the configuration to your computer. From the terminal:
-```shell
-# Access repository directory
-$ cd TensorImage/
-
-# Open configuration file for editing
-$ nano config.py
-```
-You should now have a terminal similar to the following:
+There are some configurations that must be adjusted for certain TensorImage features to work in your computer. These can be modified with a script like the following:
 ```python
-# User configurations
-workspace_dir = '/path/to/workspace/'
-tensorimage_path = '/path/to/repository/'
-...
-```
-Modify ```workspace_dir``` to the workspace directory that you will be using for TensorImage. It is not necessary for you to create the folder, as it will be created automatically in another step. Modify ```tensorimage_path``` to the path where TensorImage has been saved. Now save and exit the configuration file.
+import tensorimage.config_manager as tcm
+import tensorimage.src.make_workspace as tsmw
 
+# Update configurations
+tcm.set_config(workspace_dir='/path/to/workspace/', tensorimage_path='/path/to/tensorimage/')  
+# workspace_dir is the path to your workspace directory
+# tensorimage_path is the path to where TensorImage is stored
+
+# Create workspace directory
+tsmw.make_workspace()
+```
+Your workspace directory is simply a folder where all files, trained models and data relating to TensorImage are stored.
 # Dataset structures
 ## Training datasets
 All training datasets must have the following structure:
