@@ -1,43 +1,36 @@
-__TensorImage__ is and open source package for image classification. It has a wide range of data augmentation operations that can be performed over training data to prevent overfitting and increase testing accuracy. 
+[![Generic badge](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://shields.io/)
+[![Generic badge](https://img.shields.io/badge/docs-passing-green.svg)](https://shields.io/)
+[![GitHub release](https://img.shields.io/github/release/tensorimage/tensorimage.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
+[![Github all releases](https://img.shields.io/github/downloads/tensorimage/tensorimage/total.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
 
-TensorImage is easy to use and manage as all files, trained models and data are organized within a workspace directory, which you can change at any time in the configuration file, therefore being able have an indefinite amount of workspace directories for different purposes. 
+# TensorImage
+__TensorImage__ is and open source library for image classification for easily training and deploying models.
 
-Moreover, TensorImage can also be used to classify on thousands of images with trained image classification models. 
+## Features
+- Image classification model training. A wide range of data augmentation operations to boost testing accuracy and preventing overfitting are available
 
-# Installation
-## Download TensorImage
+- Training clusters -- making feature engineering easier and faster by automatically comparing performance of different models with varying hyperpameters
+
+- Easy to use and manage -- all files, data and trained models are stored inside your workspace directory, keeping everything organized
+
+- Large-scale deployment of trained image classification models -- generating more training data for further improved classification
+
+## Installation
+### Download TensorImage
 You can download the latest TensorImage version [here](https://github.com/TensorImage/TensorImage/releases). Once downloaded, extract the compressed folder into ```~/.local/lib/python3.6/site-packages/```. After that, from the terminal:
 ```shell
 $ cd ~/.local/lib/python3.6/site-packages/
 $ mv tensorimage-master tensorimage
 ```
-## Installing dependencies
+### Installing dependencies
 From the terminal:
 ```shell
 # Access repository directory
 $ cd ~/.local/lib/python3.6/site-packages/tensorimage/
 $ pip3 install -r requirements.txt
 ```
-### Dependencies
-- [TensorFlow](https://github.com/tensorflow/tensorflow)
 
-- [TensorBoard](https://github.com/tensorflow/tensorboard)
-
-- [OpenCV Python](https://github.com/skvark/opencv-python)
-
-- [Numpy](https://github.com/numpy/numpy)
-
-- [Pandas](https://github.com/pandas-dev/pandas)
-
-- [Pillow](https://github.com/python-pillow/Pillow)
-
-- [Sci-kit learn](https://github.com/scikit-learn/scikit-learn)
-
-- [Progress](https://github.com/Xfennec/progress)
-
-- [Scipy](https://github.com/scipy/scipy)
-
-## Configure TensorImage
+### Configuration
 There are some configurations that must be adjusted for certain TensorImage features to work in your computer. These can be modified with a script like the following:
 ```python
 import tensorimage.config_manager as tcm
@@ -52,8 +45,8 @@ tcm.set_config(workspace_dir='/path/to/workspace/', tensorimage_path='/path/to/t
 tsmw.make_workspace()
 ```
 Your workspace directory is simply a folder where all files, trained models and data relating to TensorImage are stored.
-# Dataset structures
-## Training datasets
+## Dataset structures
+### Training datasets
 All training datasets must have the following structure:
 ```
 +-- your_dataset  (directory)
@@ -75,7 +68,7 @@ All training datasets must have the following structure:
    |   image3.jpg  (image)
    |   ...         (rest of images)
 ```
-## Unclassified datasets
+### Unclassified datasets
 All unclassified datasets must have the following structure:
 ```
 +-- your_dataset  (directory)
@@ -87,15 +80,15 @@ All unclassified datasets must have the following structure:
    |   image6.jpg  (image)
    |   ...         (rest of images)
 ```
-# Examples
-## Creating a workspace directory
+## Usage
+### Creating a workspace directory
 Assuming you have the workspace directory set in ```config.py```:
 ```python
 import tensorimage as ti
 
 ti.src.make_workspace()
 ```
-## Adding a training image dataset
+### Adding a training image dataset
 ```python
 import tensorimage as ti
 
@@ -111,7 +104,7 @@ image_writer = ti.src.image.writer.TrainingDataWriter(image_loader.image_data, d
 image_writer.write_image_data()
 ```
 
-## Adding an unclassified image dataset
+### Adding an unclassified image dataset
 ```python
 import tensorimage as ti
 
@@ -126,8 +119,8 @@ image_writer = ti.src.image.writer.DataWriter(image_loader.image_data, data_name
 image_writer.write_image_data()
 ```
 
-## Training
-### Without data augmentation
+### Training
+#### Without data augmentation
 ```python
 import tensorimage as ti
 
@@ -146,7 +139,7 @@ trainer.train()
 trainer.store_model()
 ```
 
-### With data augmentation
+#### With data augmentation
 ```python
 import tensorimage as ti
 
@@ -188,12 +181,12 @@ The trained image classification model will be stored in the path:
 workspace_dir/user/trained_models/training_name
 ```
 
-### Available architectures
+#### Available architectures
 The available architectures that can be passed to the ```Train()``` class `architecture` parameter are:
 - RosNet
 - [AlexNet](https://en.wikipedia.org/wiki/AlexNet)
 
-### Visualizing training progress with TensorBoard
+#### Visualizing training progress with TensorBoard
 ```python
 from tensorboard import default
 from tensorboard import program
@@ -206,7 +199,7 @@ tb = program.TensorBoard(default.PLUGIN_LOADERS, default.get_assets_zip_provider
 tb.configure(argv=['--logdir', log_directory])
 tb.main()
 ```
-## Training clusters
+### Training clusters
 TensorImage can also be used to perform multiple training operations at once on different CPUs, only storing the models based on the final testing accuracy, which is helpful for feature engineering, as it will yield the top performers with the hyperparameters that were used.
 ```python
 import tensorimage as ti
@@ -269,7 +262,7 @@ The ```top_n``` parameter means how many top performers ```cluster_trainer.get_r
    "batch_size": 32 # Batch size used
    }}
 ```
-## Classification 
+### Classification 
 ```python
 import tensorimage as ti
 
@@ -287,5 +280,11 @@ The final predictions for all of the unclassified images will be stored in the p
 ```shell
 workspace_dir/user/predictions/training_name/classification_name/
 ```
-# License
-TensorImage is licensed under the [GPL-3.0 license](https://github.com/TensorImage/TensorImage/blob/master/LICENSE.md).
+
+## Support
+If you are experiencing any errors or bugs, please report them in the [issues section](https://github.com/TensorImage/TensorImage/issues) or contact us at tensor.image2@gmail.com
+
+## Contributing
+If you have any ideas for features that should be added to TensorImage, please feel free to [fork](https://github.com/TensorImage/tensorimage/network/members) TensorImage and [open a pull request](https://github.com/TensorImage/tensorimage/pulls).
+## License
+[GPLv3](https://github.com/TensorImage/tensorimage/blob/master/LICENSE.md)
