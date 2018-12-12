@@ -40,4 +40,4 @@ If you are experiencing any errors or bugs, please report them in the [issues se
 If you have any ideas for features that should be added to TensorImage, please feel free to [fork](https://github.com/TensorImage/tensorimage/network/members) TensorImage and [open a pull request](https://github.com/TensorImage/tensorimage/pulls).
 
 ## License
-[GPLv3](https://github.com/TensorImage/tensorimage/blob/master/LICENSE.md)
+[MIT](https://github.com/TensorImage/tensorimage/blob/master/LICENSE.md)
