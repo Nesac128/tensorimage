@@ -1,5 +1,5 @@
-import tensorimage.src.file.writer as tsfw
-import tensorimage.src.file.reader as tsfr
+import tensorimage.file.writer as tsfw
+import tensorimage.file.reader as tsfr
 import os
 
 

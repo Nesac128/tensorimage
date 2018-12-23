@@ -1,7 +1,7 @@
 import numpy as np
 import tensorflow as tf
-from tensorimage.src.config import workspace_dir
-from tensorimage.src.weights_initializer import init_weights
+from tensorimage.config.info import workspace_dir
+from tensorimage.train.weights_initializer import init_weights
 
 
 class ModelRestorer:

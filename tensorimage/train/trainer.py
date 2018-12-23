@@ -1,18 +1,17 @@
 import tensorflow as tf
 import numpy as np
-import os
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
 
-from tensorimage.src.config import *
-from tensorimage.src.file.reader import *
-from tensorimage.src.file.writer import *
-from tensorimage.src.convnet_builder import ConvNetBuilder
-from tensorimage.src.train.l2_regularization import L2RegularizationBuilder
+from tensorimage.config.info import *
+from tensorimage.file.reader import *
+from tensorimage.file.writer import *
+from tensorimage.util.convnet_builder import ConvNetBuilder
+from tensorimage.train.l2_regularization import L2RegularizationBuilder
 
 
-class Train:
+class Trainer:
     def __init__(self,
                  data_name: str,
                  training_name: str,
@@ -75,15 +74,11 @@ class Train:
         self.augmented_test_x = None
         self.augmented_test_y = None
 
-        self.convnet_builder = ConvNetBuilder(self.architecture)
-        self.convolutional_neural_network = self.convnet_builder.build_convnet()
-        self.l2_regularization_builder = L2RegularizationBuilder(self.architecture, self.l2_beta)
-        self.l2_regularization = self.l2_regularization_builder.start()
-
-        self.sess = tf.Session()
-
         self.final_testing_accuracy = None
         self.final_testing_cost = None
+
+        self.graph = tf.Graph()
+        self.sess = tf.Session(graph=self.graph)
 
     def build_dataset(self):
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
@@ -101,88 +96,95 @@ class Train:
         self.train_x, self.test_x, self.train_y, self.test_y = train_test_split(self.X, self.Y,
                                                                                 test_size=self.train_test_split,
                                                                                 random_state=415)
-        self.train_x = self.sess.run(tf.reshape(self.train_x, shape=[self.train_x.shape[0], self.height, self.width, 3]))
-        self.test_x = self.sess.run(tf.reshape(self.test_x, shape=[self.test_x.shape[0], self.height, self.width, 3]))
+        with self.graph.as_default():
+            self.train_x = tf.reshape(self.train_x, shape=[self.train_x.shape[0], self.height, self.width, 3])
+            self.test_x = tf.reshape(self.test_x, shape=[self.test_x.shape[0], self.height, self.width, 3])
+            n_channels = self.train_x.shape[3]
+        with self.sess.as_default():
+            self.train_x = self.sess.run(self.train_x)
+            self.test_x = self.sess.run(self.test_x)
 
-        n_channels = self.train_x.shape[3]
-
-        if not self.data_augmentation_builder[0]:
-            self.augmented_train_x, self.augmented_test_y = self.data_augmentation_builder[0].start(self.train_x,
-                                                                                                    self.train_y,
-                                                                                                    self.n_classes,
-                                                                                                    (self.width,
-                                                                                                     self.height),
-                                                                                                    n_channels)
+        if self.data_augmentation_builder[0]:
+            self.augmented_train_x, self.augmented_test_y = \
+                self.data_augmentation_builder[0].start(
+                    self.train_x, self.train_y, self.n_classes,
+                    (self.width, self.height), n_channels)
 
     def train(self):
-        x = tf.placeholder(tf.float32, [None, self.height, self.width, 3], name='x')
-        labels = tf.placeholder(tf.float32, [None, self.n_classes])
+        with self.graph.as_default():
+            x = tf.placeholder(tf.float32, [None, self.height, self.width, 3], name='x')
+            labels = tf.placeholder(tf.float32, [None, self.n_classes])
 
-        batch_iters = self.train_x.shape[0] // self.batch_size
+            convnet_builder = ConvNetBuilder(self.architecture)
+            convolutional_neural_network = convnet_builder.build_convnet()
+            convnet = convolutional_neural_network(x, self.n_classes, self.graph)
 
-        init = tf.global_variables_initializer()
-        self.sess.run(init)
+            l2_regularization_builder = L2RegularizationBuilder(self.architecture, self.l2_beta, (
+                convnet.weights_shapes, convnet.biases_shapes))
+            l2_regularization = l2_regularization_builder.start()
 
-        convnet = self.convolutional_neural_network(x, self.n_classes)
-        model = convnet.convnet()
+            batch_iters = self.train_x.shape[0] // self.batch_size
 
-        with tf.name_scope('cost_function'):
-            cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
-                logits=model, labels=labels)) + self.l2_regularization)
+            init = tf.global_variables_initializer()
+            model = convnet.convnet()
 
-        training_step = tf.train.AdamOptimizer(self.learning_rate).minimize(cost_function)
+            with tf.name_scope('cost_function'):
+                cost_function = (tf.reduce_mean(tf.nn.softmax_cross_entropy_with_logits_v2(
+                    logits=model, labels=labels)) + l2_regularization)
+            correct_prediction_ = tf.equal(tf.argmax(model, 1), tf.argmax(labels, 1))
+            training_accuracy = tf.reduce_mean(tf.cast(correct_prediction_, tf.float32))
+            testing_accuracy = tf.reduce_mean(tf.cast(correct_prediction_, tf.float32))
 
+        training_step = tf.train.AdamOptimizer(self.learning_rate, name='Adam_'+self.training_name).minimize(cost_function)
         self.sess.run(tf.global_variables_initializer())
-
-        correct_prediction_ = tf.equal(tf.argmax(model, 1), tf.argmax(labels, 1))
-        training_accuracy = tf.reduce_mean(tf.cast(correct_prediction_, tf.float32))
-        testing_accuracy = tf.reduce_mean(tf.cast(correct_prediction_, tf.float32))
 
         with tf.name_scope('accuracy'):
             tf.summary.scalar('training_accuracy', training_accuracy)
             tf.summary.scalar('testing_accuracy', testing_accuracy)
         with tf.name_scope('cost'):
             tf.summary.scalar('training_cost', cost_function)
+        with self.sess.as_default():
+            write_op = tf.summary.merge_all()
+            writer = tf.summary.FileWriter(workspace_dir + 'user/logs/' + str(self.training_name), self.sess.graph)
+            self.sess.run(init)
 
-        write_op = tf.summary.merge_all()
-        writer = tf.summary.FileWriter(workspace_dir+'user/logs/'+str(self.training_name), self.sess.graph)
-        for epoch in range(1, self.n_epochs+1):
-            training_accuracy_ = 0
-            testing_accuracy_ = 0
-            training_cost = 0
-            testing_cost = 0
-            try:
-                for i in range(1, batch_iters+1):
-                    x_, y = self._get_batch(i)
-                    self.sess.run(training_step, feed_dict={x: x_, labels: y})
+            for epoch in range(1, self.n_epochs+1):
+                training_accuracy_ = 0
+                testing_accuracy_ = 0
+                training_cost = 0
+                testing_cost = 0
+                try:
+                    for i in range(1, batch_iters+1):
+                        x_, y = self._get_batch(i)
+                        training_step.eval(feed_dict={x: x_, labels: y})
 
-                    batch_training_accuracy = (self.sess.run(training_accuracy, feed_dict={x: x_, labels: y}))
-                    batch_testing_accuracy = (self.sess.run(testing_accuracy, feed_dict={x: self.test_x, labels: self.test_y}))
-                    batch_testing_cost = self.sess.run(cost_function, feed_dict={x: self.test_x, labels: self.test_y})
-                    batch_training_cost = self.sess.run(cost_function, feed_dict={x: x_, labels: y})
+                        batch_training_accuracy = training_accuracy.eval(feed_dict={x: x_, labels: y})
+                        batch_testing_accuracy = testing_accuracy.eval(feed_dict={x: self.test_x, labels: self.test_y})
+                        batch_testing_cost = cost_function.eval(feed_dict={x: self.test_x, labels: self.test_y})
+                        batch_training_cost = cost_function.eval(feed_dict={x: x_, labels: y})
 
-                    training_accuracy_ += batch_training_accuracy
-                    testing_accuracy_ += batch_testing_accuracy
-                    training_cost += batch_training_cost
-                    testing_cost += batch_testing_cost
-            except KeyboardInterrupt:
-                print("\nYou have chosen to early stop the training process.")
-                if self._confirm_early_stop():
-                    break
-            avr_training_accuracy = training_accuracy_/batch_iters
-            avr_testing_accuracy = testing_accuracy_/batch_iters
+                        training_accuracy_ += batch_training_accuracy
+                        testing_accuracy_ += batch_testing_accuracy
+                        training_cost += batch_training_cost
+                        testing_cost += batch_testing_cost
+                except KeyboardInterrupt:
+                    print("\nYou have chosen to early stop the training process.")
+                    if self._confirm_early_stop():
+                        break
+                avr_training_accuracy = training_accuracy_/batch_iters
+                avr_testing_accuracy = testing_accuracy_/batch_iters
 
-            summary = self.sess.run(write_op, {training_accuracy: avr_training_accuracy,
-                                               testing_accuracy: avr_testing_accuracy,
-                                               cost_function: training_cost})
-            writer.add_summary(summary, epoch)
-            writer.flush()
-            if epoch % 50 == 0:
-                print("Epoch: ", epoch, "   Training accuracy = ", float("%0.5f" % avr_training_accuracy),
-                      "   Testing accuracy = ", float("%0.5f" % avr_testing_accuracy), "   Training cost = ",
-                      training_cost, "   Testing cost = ", testing_cost)
-            self.final_testing_accuracy = avr_testing_accuracy
-            self.final_testing_cost = testing_cost
+                summary = self.sess.run(write_op, {training_accuracy: avr_training_accuracy,
+                                        testing_accuracy: avr_testing_accuracy,
+                                        cost_function: training_cost})
+                writer.add_summary(summary, epoch)
+                writer.flush()
+                if epoch % 5 == 0:
+                    print("Epoch: ", epoch, "   Training accuracy = ", float("%0.5f" % avr_training_accuracy),
+                          "   Testing accuracy = ", float("%0.5f" % avr_testing_accuracy), "   Training cost = ",
+                          training_cost, "   Testing cost = ", testing_cost)
+                self.final_testing_accuracy = avr_testing_accuracy
+                self.final_testing_cost = testing_cost
 
         self._write_metadata()
         writer.close()
@@ -225,7 +227,7 @@ class Train:
         return one_hot_encode
 
 
-class ClusterTrain:
+class ClusterTrainer:
     def __init__(self, **trainers):
         """
         :param trainers: Train class objects
@@ -237,21 +239,14 @@ class ClusterTrain:
             self.trainer_data[name]["completed"] = False
         self.in_training = []
 
-    def train(self):
-        for (n, trainer), name in zip(enumerate(list(self.trainers.values())), list(self.trainers.keys())):
-            if (n+1) <= os.cpu_count():
-                self.train_in_cpu(trainer, n, name)
-            else:
-                while True:
-                    for trainer_ in self.in_training:
-                        if self.trainer_data[trainer_]["completed"]:
-                            self.train_in_cpu(trainer, n, name)
-        return True
+    def start(self):
+        for (trainer, name) in zip(self.trainers.values(), self.trainers.keys()):
+            self.train(trainer, name)
 
-    def train_in_cpu(self, trainer, n, name):
-        self.in_training.append(name)
-        with tf.device('/cpu:' + str(n)):
-            trainer.train()
+    def train(self, trainer, name):
+        trainer.build_dataset()
+        trainer.train()
+        trainer.store_model()
         self.trainer_data[name]["completed"] = True
         self.trainer_data[name]["testing_accuracy"] = trainer.final_testing_accuracy
         self.trainer_data[name]["testing_cost"] = trainer.final_testing_cost
@@ -261,7 +256,6 @@ class ClusterTrain:
         self.trainer_data[name]["train_test_split"] = trainer.train_test_split
         self.trainer_data[name]["architecture"] = trainer.architecture
         self.trainer_data[name]["batch_size"] = trainer.batch_size
-        del self.in_training[self.in_training.index(name)]
 
     def get_results(self, top_n=1):
         trainer_performance = {}
@@ -272,6 +266,5 @@ class ClusterTrain:
                 max_accuracy = trainer_data["testing_accuracy"]
                 trainer_performance[n+1] = trainer_data
 
-        for tn, trainer in range(1, top_n+1), self.trainers:
-            trainer.store_model()
+        for tn in range(1, top_n+1):
             yield trainer_performance[tn]

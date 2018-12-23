@@ -2,12 +2,12 @@ import tensorflow as tf
 import numpy as np
 import csv
 
-from tensorimage.src.config import *
-from tensorimage.src.image.display import display_image
-from tensorimage.src.file.reader import *
-from tensorimage.src.os.mkdir import mkdir
-from tensorimage.src.convnet_builder import ConvNetBuilder
-from tensorimage.src.classify.restore_model import ModelRestorer
+from tensorimage.config.info import *
+from tensorimage.image.display import display_image
+from tensorimage.file.reader import *
+from tensorimage.util.mkdir import mkdir
+from tensorimage.util.convnet_builder import ConvNetBuilder
+from tensorimage.classify.restore_model import ModelRestorer
 
 
 class Classifier:

@@ -1,7 +1,0 @@
-{
-   "user": {
-      "workspace_dir": "/path/to/workspace/",
-      "tensorimage_path": "/path/to/tensorimage/",
-      "predictions_base_filename": "predictions"
-   }
-}
