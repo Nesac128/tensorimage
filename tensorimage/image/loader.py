@@ -40,8 +40,8 @@ class ImageLoader:
             img = Image.open(self.image_paths[pixels_n])
             img_rgb = img.convert('RGB')
             im_pixels = []
-            for x in range(self.img_dims[pixels_n][0]):
-                for y in range(self.img_dims[pixels_n][1]):
+            for x in range(self.img_dims[0]):
+                for y in range(self.img_dims[1]):
                     r, g, b = img_rgb.getpixel((x, y))
                     im_pixels.append(r)
                     im_pixels.append(g)

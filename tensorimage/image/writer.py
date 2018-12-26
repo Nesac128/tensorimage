@@ -93,10 +93,10 @@ class TrainingDataWriter:
         # Update necessary parameters for training process as metadata, to reduce required user input
         self.metadata_writer.update(
             dataset_type="training",
-            n_columns=len(self.image_data[0]) + 1,
+            n_columns=len(self.image_data[0]),
             data_path=self.data_dir + 'data.csv',
             n_classes=self.n_classes,
-            data_len=len(self.image_data[0]),
+            data_len=len(self.image_data[0])-1,
             width=self.img_dims[0],
             height=self.img_dims[1],
             dataset_name=self.dataset_name)
