@@ -8,6 +8,7 @@ from tensorimage.config.info import *
 from tensorimage.file.reader import *
 from tensorimage.file.writer import *
 from tensorimage.util.convnet_builder import ConvNetBuilder
+from tensorimage.util.os import *
 from tensorimage.train.l2_regularization import L2RegularizationBuilder
 
 
@@ -87,9 +88,6 @@ class Trainer:
         self.X = self.csv_reader.X
         Y = self.csv_reader.Y
 
-        print(self.X.shape, " X shape")
-        print(Y.shape, " Y shape")
-
         encoder = LabelEncoder()
         encoder.fit(Y)
         y = encoder.transform(Y)
@@ -101,14 +99,20 @@ class Trainer:
         self.train_x = self.sess.run(tf.reshape(self.train_x, shape=[self.train_x.shape[0], self.height, self.width, 3]))
         self.test_x = self.sess.run(tf.reshape(self.test_x, shape=[self.test_x.shape[0], self.height, self.width, 3]))
         n_channels = self.train_x.shape[3]
-
-        if self.data_augmentation_builder[0]:
-            self.augmented_train_x, self.augmented_test_y = \
-                self.data_augmentation_builder[0].start(
-                    self.train_x, self.train_y, self.n_classes,
-                    (self.width, self.height), n_channels)
+        #
+        # if self.data_augmentation_builder[0]:
+        #     self.augmented_train_x, self.augmented_test_y = \
+        #         self.data_augmentation_builder[0].start(
+        #             self.train_x, self.train_y, self.n_classes,
+        #             (self.width, self.height), n_channels)
 
     def train(self):
+        clear()
+        print(self.train_x.shape, " Train X shape")
+        print(self.train_y.shape, " Train Y shape")
+        print(self.test_x.shape, " Test X shape")
+        print(self.test_y.shape, " Test Y shape\n")
+
         x = tf.placeholder(tf.float32, shape=[None, self.height, self.width, 3], name='x_'+self.training_name)
         labels = tf.placeholder(tf.float32, shape=[None, self.n_classes], name='labels_'+self.training_name)
 
