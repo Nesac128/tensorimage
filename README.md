@@ -1,43 +1,36 @@
-[![Generic badge](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://shields.io/)
-[![Generic badge](https://img.shields.io/badge/docs-passing-green.svg)](https://shields.io/)
+ [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![Generic badge](https://img.shields.io/badge/docs-passing-green.svg)](https://shields.io/)
 [![GitHub release](https://img.shields.io/github/release/tensorimage/tensorimage.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
 [![Github all releases](https://img.shields.io/github/downloads/tensorimage/tensorimage/total.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
 
-# TensorImage
+## TensorImage
 ![Example](https://cdn-images-1.medium.com/max/1600/1*PAqzvCxPjpDN8RC9HQw45w.jpeg) 
 
 
-__TensorImage__ is and open source library for image classification for easily training and deploying models.
+__TensorImage__ is and open source image classification library designed to easily train and deploy models.
 
-## Features
-- Image classification model training. A wide range of data augmentation operations to boost testing accuracy and preventing overfitting are available
+The main features are:
+- Image classification model training. A wide range of data augmentation operations to boost testing accuracy and prevent overfitting are available
 
-- Training clusters -- making feature engineering easier and faster by automatically comparing performance of different models with varying hyperpameters
+- Training clusters -- makes feature engineering easier and faster by automatically comparing performance of different models with varying hyperpameters
 
-- Easy to use and manage -- all files, data and trained models are stored inside your workspace directory, keeping everything organized
+- Organization -- all files, data and trained models are stored inside your workspace directory which can be accessed at any time
 
 - Large-scale deployment of trained image classification models -- generating more training data for further improved classification
 
-## Installation
+### Installation
 From the terminal:
 ```shell
-$ git clone https://github.com/TensorImage/tensorimage.git
-```
-Once downloaded, move or copy the folder to ```~/.local/lib/python3.6/site-packages/```. Then, install the dependencies from ```requirements.txt```. From the terminal:
-```shell
-$ cp -r tensorimage ~/.local/lib/python3.6/site-packages/
-$ cd ~/.local/lib/python3.6/site-packages/tensorimage
-$ pip3 install -r requirements.txt
+$ pip3 install tensorimage
 ```
 
-## Documentation
-You can view TensorImage's documenation [here](https://github.com/TensorImage/tensorimage/wiki/Documentation).
+### Documentation
+You can view TensorImage's documentation [here](https://github.com/TensorImage/tensorimage/wiki/Documentation).
 
-## Support
+### Support
 If you are experiencing any errors or bugs, please report them in the [issues section](https://github.com/TensorImage/TensorImage/issues) or contact us at tensor.image2@gmail.com
 
-## Contributing
+### Contributing
 If you have any ideas for features that should be added to TensorImage, please feel free to [fork](https://github.com/TensorImage/tensorimage/network/members) TensorImage and [open a pull request](https://github.com/TensorImage/tensorimage/pulls).
 
-## License
-[GPLv3](https://github.com/TensorImage/tensorimage/blob/master/LICENSE.md)
+### License
+[MIT](https://github.com/TensorImage/tensorimage/blob/master/LICENSE.md)
