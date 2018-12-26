@@ -41,7 +41,8 @@ class DataWriter:
             n_classes=self.n_classes,
             width=self.img_dims[0],
             height=self.img_dims[1],
-            dataset_name=self.dataset_name)
+            dataset_name=self.dataset_name,
+            trainable="False")
         self.metadata_writer.write()
 
 
@@ -99,6 +100,7 @@ class TrainingDataWriter:
             data_len=len(self.image_data[0])-1,
             width=self.img_dims[0],
             height=self.img_dims[1],
-            dataset_name=self.dataset_name)
+            dataset_name=self.dataset_name,
+            trainable="True")
         self.metadata_writer.write()
 

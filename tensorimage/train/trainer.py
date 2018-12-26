@@ -188,7 +188,8 @@ class Trainer:
                                              model_folder_name=self.model_folder_name,
                                              model_name=self.training_name,
                                              dataset_name=self.dataset_name,
-                                             architecture=self.architecture)
+                                             architecture=self.architecture,
+                                             n_classes=self.n_classes)
         self.training_metadata_writer.write()
 
     def store_model(self):
