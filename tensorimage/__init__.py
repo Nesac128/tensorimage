@@ -40,7 +40,7 @@ from tensorimage.config.info import base_trained_models_store_path
 from tensorimage.config.manager import set_config
 from tensorimage.config.manager import view_config
 from tensorimage.data_augmentation.ops import AddPepperSaltNoise
-from tensorimage.data_augmentation.ops import RotateImages
+from tensorimage.data_augmentation.ops import GaussianBlur
 from tensorimage.data_augmentation.ops import FlipImages
 from tensorimage.data_augmentation.ops import ModifyLighting
 from tensorimage.data_augmentation.builder import DataAugmentationBuilder
