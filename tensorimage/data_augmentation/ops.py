@@ -15,7 +15,7 @@ class ModifyLighting:
         self.max_delta = max_delta
 
 
-class RotateImages:
-    """rotate_images"""
-    def __init__(self, *angles):
-        self.angles = angles
+class GaussianBlur:
+    """gaussian_blur"""
+    def __init__(self, sigma=1):
+        self.sigma=sigma

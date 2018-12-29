@@ -4,6 +4,11 @@ import numpy as np
 
 class DataAugmentationBuilder:
     def __init__(self, *operations):
+        """
+        :param operations: data augmentation classmethods *args
+        """
+        for op in operations:
+            assert isinstance(op, classmethod)
         self.operations = operations
 
     def start(self, x, y, n_classes, dims, n_channels):
@@ -23,8 +28,9 @@ class DataAugmentationBuilder:
                 data, labels = data_augmenter.modify_lighting(op.max_delta)
                 augmented_data = np.concatenate((augmented_data, data))
                 augmented_labels = np.concatenate((augmented_labels, labels))
-            elif op.__doc__ == data_augmenter.rotate_images.__doc__:
-                data, labels = data_augmenter.rotate_images(op.angles)
+            elif op.__doc__ == data_augmenter.gaussian_blur.__doc__:
+                data, labels = data_augmenter.gaussian_blur(op.sigma)
                 augmented_data = np.concatenate((augmented_data, data))
                 augmented_labels = np.concatenate((augmented_labels, labels))
+
         return augmented_data, augmented_labels
