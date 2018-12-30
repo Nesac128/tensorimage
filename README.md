@@ -1,4 +1,5 @@
- [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)[![Generic badge](https://img.shields.io/badge/docs-passing-green.svg)](https://shields.io/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Generic badge](https://img.shields.io/badge/docs-passing-green.svg)](https://shields.io/) 
 [![GitHub release](https://img.shields.io/github/release/tensorimage/tensorimage.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
 [![Github all releases](https://img.shields.io/github/downloads/tensorimage/tensorimage/total.svg)](https://GitHub.com/tensorimage/tensorimage/releases/)
 
@@ -11,9 +12,9 @@ __TensorImage__ is and open source image classification library designed to easi
 The main features are:
 - Image classification model training. A wide range of data augmentation operations to boost testing accuracy and prevent overfitting are available
 
-- Training clusters -- makes feature engineering easier and faster by automatically comparing performance of different models with varying hyperpameters
+- Training clusters -- makes hyperparameter tuning easier and faster by automatically comparing performance of different models
 
-- Organization -- all files, data and trained models are stored inside your workspace directory which can be accessed at any time
+- Organization -- all files, data and trained models are automatically stored and ordered inside your workspace directory which can be accessed at any time
 
 - Large-scale deployment of trained image classification models -- generating more training data for further improved classification
 
