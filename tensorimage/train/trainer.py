@@ -97,6 +97,9 @@ class Trainer:
         self.sess = tf.Session(config=self.config)
 
     def build_dataset(self):
+        print("""
+                                                \033[1mTraining operation name: """, self.training_name, """\033[0;0m
+                """)
         log.info("Building dataset...", self)
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
         self.X = self.csv_reader.X
@@ -182,7 +185,7 @@ class Trainer:
                 break
             avr_training_accuracy = training_accuracy_ / batch_iters
             avr_testing_accuracy = testing_accuracy_ / batch_iters
-            if epoch % int(self.n_epochs/50) == 0:
+            if epoch % np.ceil(self.n_epochs/50) == 0:
                 log.info("\033[1mEpoch = %s    Training accuracy = %s    Testing accuracy = %s    Training cost = %s    Testing cost = %s",
                          self, epoch, float("%0.5f" % avr_training_accuracy), float("%0.5f" % avr_testing_accuracy),
                          float("%0.3f" % training_cost), float("%0.3f" % testing_cost))
@@ -206,9 +209,12 @@ class Trainer:
         self.training_metadata_writer.write()
 
     def store_model(self):
+        log.info("Stored model in path: {}".format(base_trained_models_store_path + self.model_folder_name + '/' +
+                 self.training_name+"\n\n"), self)
         saver = tf.train.Saver()
         saver.save(self.sess, base_trained_models_store_path + self.model_folder_name
                    + '/' + self.training_name)
+
 
     @staticmethod
     def _one_hot_encode(dlabels):
