@@ -1,15 +1,26 @@
 import tensorflow as tf
 import numpy as np
+import warnings
+import logging
 from sklearn.preprocessing import LabelEncoder
 from sklearn.utils import shuffle
 from sklearn.model_selection import train_test_split
+from sklearn.exceptions import DataConversionWarning
 
 from tensorimage.config.info import *
 from tensorimage.file.reader import *
 from tensorimage.file.writer import *
 from tensorimage.util.convnet_builder import ConvNetBuilder
-from tensorimage.util.os import *
 from tensorimage.train.l2_regularization import L2RegularizationBuilder
+import tensorimage.util.log as log
+
+# Disable tensorflow & sklearn loggers
+os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
+warnings.filterwarnings(action='ignore', category=DataConversionWarning)
+
+sklearn_logger = log.getLogger('sklearn')
+sklearn_logger.setLevel(logging.WARNING)
+sklearn_logger.propagate = False
 
 
 class Trainer:
@@ -23,7 +34,8 @@ class Trainer:
                  data_augmentation_builder: tuple=(None, False),
                  batch_size: int = 32,
                  train_test_split: float = 0.2,
-                 n_threads: int = 10):
+                 n_threads: int = 10,
+                 verbose=True):
         """
         :param data_name: unique name which identifies which image data to read for training
         :param n_epochs: number of epochs
@@ -44,6 +56,7 @@ class Trainer:
         self.data_augmentation_builder = data_augmentation_builder
         self.batch_size = batch_size
         self.n_threads = n_threads
+        self.verbose = verbose
 
         self.training_metadata_writer = JSONWriter(self.training_name, training_metafile_path)
 
@@ -84,6 +97,7 @@ class Trainer:
         self.sess = tf.Session(config=self.config)
 
     def build_dataset(self):
+        log.info("Building dataset...", self)
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
         self.X = self.csv_reader.X
         Y = self.csv_reader.Y
@@ -99,20 +113,14 @@ class Trainer:
         self.train_x = self.sess.run(tf.reshape(self.train_x, shape=[self.train_x.shape[0], self.height, self.width, 3]))
         self.test_x = self.sess.run(tf.reshape(self.test_x, shape=[self.test_x.shape[0], self.height, self.width, 3]))
         n_channels = self.train_x.shape[3]
-        #
-        # if self.data_augmentation_builder[0]:
-        #     self.augmented_train_x, self.augmented_test_y = \
-        #         self.data_augmentation_builder[0].start(
-        #             self.train_x, self.train_y, self.n_classes,
-        #             (self.width, self.height), n_channels)
+
+        if self.data_augmentation_builder[1]:
+            self.augmented_train_x, self.augmented_test_y = \
+                self.data_augmentation_builder[0].start(
+                    self.train_x, self.train_y, self.n_classes,
+                    (self.height, self.width), n_channels)
 
     def train(self):
-        clear()
-        print(self.train_x.shape, " Train X shape")
-        print(self.train_y.shape, " Train Y shape")
-        print(self.test_x.shape, " Test X shape")
-        print(self.test_y.shape, " Test Y shape\n")
-
         x = tf.placeholder(tf.float32, shape=[None, self.height, self.width, 3], name='x_'+self.training_name)
         labels = tf.placeholder(tf.float32, shape=[None, self.n_classes], name='labels_'+self.training_name)
 
@@ -121,6 +129,7 @@ class Trainer:
         init = tf.global_variables_initializer()
         self.sess.run(init)
 
+        log.info("Building ConvNet...", self)
         convnet_builder = ConvNetBuilder(self.architecture)
         convolutional_neural_network = convnet_builder.build_convnet()
         convnet = convolutional_neural_network(x, self.n_classes)
@@ -148,6 +157,7 @@ class Trainer:
         with tf.name_scope('cost'):
             tf.summary.scalar('training_cost', cost_function)
 
+        log.info("Began training...", self)
         for epoch in range(1, self.n_epochs + 1):
             training_accuracy_ = 0
             testing_accuracy_ = 0
@@ -169,15 +179,14 @@ class Trainer:
                     training_cost += batch_training_cost
                     testing_cost += batch_testing_cost
             except KeyboardInterrupt:
-                print("\nYou have chosen to early stop the training process.")
-                if self._confirm_early_stop():
-                    break
+                break
             avr_training_accuracy = training_accuracy_ / batch_iters
             avr_testing_accuracy = testing_accuracy_ / batch_iters
-            if epoch % 10 == 0:
-                print("Epoch: ", epoch, "   Training accuracy = ", float("%0.5f" % avr_training_accuracy),
-                      "   Testing accuracy = ", float("%0.5f" % avr_testing_accuracy), "   Training cost = ",
-                      training_cost, "   Testing cost = ", testing_cost)
+            if epoch % int(self.n_epochs/50) == 0:
+                log.info("\033[1mEpoch = %s    Training accuracy = %s    Testing accuracy = %s    Training cost = %s    Testing cost = %s",
+                         self, epoch, float("%0.5f" % avr_training_accuracy), float("%0.5f" % avr_testing_accuracy),
+                         float("%0.3f" % training_cost), float("%0.3f" % testing_cost))
+
             self.final_testing_accuracy = avr_testing_accuracy
             self.final_testing_cost = testing_cost
 
@@ -200,18 +209,6 @@ class Trainer:
         saver = tf.train.Saver()
         saver.save(self.sess, base_trained_models_store_path + self.model_folder_name
                    + '/' + self.training_name)
-
-    def _confirm_early_stop(self):
-        confirmation = input("Confirm early stopping [Y/n]: ")
-        y = ['Y', 'y', 'yes', 'Yes']
-        n = ['N', 'n', 'no', 'No']
-        if confirmation in y:
-            return True
-        elif confirmation in n:
-            return False
-        else:
-            print("Invalid option!")
-            self._confirm_early_stop()
 
     @staticmethod
     def _one_hot_encode(dlabels):
