@@ -7,8 +7,6 @@ class DataAugmentationBuilder:
         """
         :param operations: data augmentation classmethods *args
         """
-        for op in operations:
-            assert isinstance(op, classmethod)
         self.operations = operations
 
     def start(self, x, y, n_classes, dims, n_channels):
@@ -32,5 +30,4 @@ class DataAugmentationBuilder:
                 data, labels = data_augmenter.gaussian_blur(op.sigma)
                 augmented_data = np.concatenate((augmented_data, data))
                 augmented_labels = np.concatenate((augmented_labels, labels))
-
         return augmented_data, augmented_labels
