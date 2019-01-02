@@ -25,7 +25,7 @@ $ pip3 install tensorimage
 ```
 
 ### Documentation
-You can view TensorImage's documentation [here](https://github.com/TensorImage/tensorimage/wiki/Documentation).
+You can view TensorImage's documentation [here](https://tensorimage.readthedocs.io/en/latest/).
 
 ### Support
 If you are experiencing any errors or bugs, please report them in the [issues section](https://github.com/TensorImage/TensorImage/issues) or contact us at tensor.image2@gmail.com
