@@ -42,7 +42,11 @@ from tensorimage.config.manager import view_config
 from tensorimage.data_augmentation.ops import AddPepperSaltNoise
 from tensorimage.data_augmentation.ops import GaussianBlur
 from tensorimage.data_augmentation.ops import FlipImages
-from tensorimage.data_augmentation.ops import ModifyLighting
+from tensorimage.data_augmentation.ops import RandomHue
+from tensorimage.data_augmentation.ops import RandomBrightness
+from tensorimage.data_augmentation.ops import RandomContrast
+from tensorimage.data_augmentation.ops import RandomSaturation
+from tensorimage.data_augmentation.ops import ColorFilter
 from tensorimage.data_augmentation.builder import DataAugmentationBuilder
 from tensorimage.data_augmentation.src import AugmentImageData
 from tensorimage.classify.restore_model import ModelRestorer
