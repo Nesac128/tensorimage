@@ -117,7 +117,7 @@ class Trainer:
         if self.data_augmentation_builder[1]:
             self.augmented_train_x, self.augmented_test_y = \
                 self.data_augmentation_builder[0].start(
-                    self.train_x, self.train_y, self.n_classes,
+                    self.train_x, self.train_y, self.verbose, self.n_classes,
                     (self.height, self.width), n_channels)
 
     def train(self):
