@@ -38,7 +38,7 @@ class AugmentImageData:
         log.info("Image flipping", self)
         augmented_data = tf.constant([], tf.float32, shape=[0, dims[0], dims[1], self.n_channels])
         augmented_labels = tf.constant([], tf.float32, shape=[0, self.n_classes])
-        for (image_n, image), label in zip(enumerate(self.x), self.y):
+        for (image, label) in zip(self.x, self.y):
             flip_up_down = tf.image.flip_up_down(image)
             flip_left_right = tf.image.flip_left_right(image)
             random_flip_up_down = tf.image.random_flip_up_down(image)
