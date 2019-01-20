@@ -10,8 +10,8 @@ from sklearn.exceptions import DataConversionWarning
 from tensorimage.config.info import *
 from tensorimage.file.reader import *
 from tensorimage.file.writer import *
-from tensorimage.util.convnet_builder import ConvNetBuilder
-from tensorimage.train.l2_regularization import L2RegularizationBuilder
+from tensorimage.base.l2_regularization import L2RegularizationBuilder
+from tensorimage.base.models.map.model import model_map
 import tensorimage.util.log as log
 
 # Disable tensorflow & sklearn loggers
@@ -68,7 +68,8 @@ class Trainer:
         self.training_data_path = image_metadata["data_path"]
         self.n_classes = image_metadata["n_classes"]
         self.dataset_type = image_metadata["dataset_type"]
-        assert self.dataset_type == 'training'
+        if not self.dataset_type == 'training':
+            raise AssertionError()
         self.data_len = image_metadata["data_len"]
         self.width = image_metadata["width"]
         self.height = image_metadata["height"]
@@ -129,10 +130,7 @@ class Trainer:
         init = tf.global_variables_initializer()
         self.sess.run(init)
 
-        log.info("Building ConvNet...", self)
-        convnet_builder = ConvNetBuilder(self.architecture)
-        convolutional_neural_network = convnet_builder.build_convnet()
-        convnet = convolutional_neural_network(x, self.n_classes)
+        convnet = model_map[self.architecture](x, self.n_classes)
         model = convnet.convnet()
 
         l2_regularization_builder = L2RegularizationBuilder(self.architecture, self.l2_beta, (
@@ -217,48 +215,3 @@ class Trainer:
         one_hot_encode = np.zeros((n_labels, n_unique_labels))
         one_hot_encode[np.arange(n_labels), dlabels] = 1
         return one_hot_encode
-
-
-class ClusterTrainer:
-    def __init__(self, **trainers):
-        """
-        :param trainers: Trainer object **kwargs with name (key) and object (value)
-        """
-        self.trainers = trainers
-
-        self.trainer_data = {}
-        for name in list(self.trainers.keys()):
-            self.trainer_data[name] = {}
-            self.trainer_data[name]["completed"] = False
-        self.in_training = []
-
-    def start(self):
-        for (trainer, name) in zip(self.trainers.values(), self.trainers.keys()):
-            self.train(trainer, name)
-
-    def train(self, trainer, name):
-        trainer.build_dataset()
-        trainer.train()
-        trainer.store_model()
-        self.trainer_data[name]["name"] = name
-        self.trainer_data[name]["testing_accuracy"] = trainer.final_testing_accuracy
-        self.trainer_data[name]["testing_cost"] = trainer.final_testing_cost
-        self.trainer_data[name]["n_epochs"] = trainer.n_epochs
-        self.trainer_data[name]["learning_rate"] = trainer.learning_rate
-        self.trainer_data[name]["l2_regularization_beta"] = trainer.l2_beta
-        self.trainer_data[name]["train_test_split"] = trainer.train_test_split
-        self.trainer_data[name]["architecture"] = trainer.architecture
-        self.trainer_data[name]["batch_size"] = trainer.batch_size
-        self.trainer_data[name]["completed"] = True
-
-    def get_results(self):
-        trainer_performance = {}
-        accuracy_history = []
-
-        for td in list(self.trainer_data.values()):
-            accuracy_history.append((td["name"], td["testing_accuracy"]))
-        accuracy_history.sort(key=lambda top: top[1], reverse=True)
-        for n, data in enumerate(accuracy_history):
-            trainer_performance[str(n+1)] = self.trainer_data[data[0]]
-
-        return trainer_performance

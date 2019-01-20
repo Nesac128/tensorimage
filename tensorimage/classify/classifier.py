@@ -1,13 +1,14 @@
 import tensorflow as tf
 import numpy as np
 import csv
+import ast
 
 from tensorimage.config.info import *
 from tensorimage.image.display import display_image
 from tensorimage.file.reader import *
-from tensorimage.util.mkdir import mkdir
-from tensorimage.util.convnet_builder import ConvNetBuilder
+from tensorimage.util.system.mkdir import mkdir
 from tensorimage.classify.restore_model import ModelRestorer
+from tensorimage.base.models.map.model import model_map
 
 
 class Classifier:
@@ -30,7 +31,7 @@ class Classifier:
         self.training_name = training_name
         self.classification_name = classification_name
         try:
-            self.show_images = eval(str(show_images[0]))
+            self.show_images = ast.literal_eval(str(show_images[0]))
             self.max_images = show_images[1]
         except NameError:
             self.show_images = False
@@ -49,7 +50,7 @@ class Classifier:
         self.height = image_metadata["height"]
         self.path_file = image_metadata["path_file"]
         self.trainable = image_metadata["trainable"]
-        if eval(self.trainable):
+        if ast.literal_eval(self.trainable):
             raise AssertionError("Data is trainable")
 
         # Read trained model metadata
@@ -85,11 +86,8 @@ class Classifier:
         self.X = None
         self.X_ = None
 
-        self.convnet_builder = ConvNetBuilder(self.architecture)
-        self.convolutional_neural_network = self.convnet_builder.build_convnet()
-
         self.sess = tf.Session()
-        self.model_restore = ModelRestorer(self.model_path, self.model_name, self.architecture, self.sess)
+        self.model_restorer = ModelRestorer(self.model_path, self.model_name, self.architecture, self.sess)
 
         self.n_images = 0
 
@@ -100,11 +98,11 @@ class Classifier:
         self.n_images = len(self.X)
 
     def predict(self):
-        self.model_restore.start()
+        self.model_restorer.start()
 
         x = tf.placeholder(tf.float32, [None, self.height, self.width, 3])
 
-        convnet = self.convolutional_neural_network(x, self.n_classes)
+        convnet = model_map[self.architecture](x, self.n_classes)
         model = convnet.convnet()
         self.sess.run(tf.global_variables_initializer())
 
