@@ -4,7 +4,7 @@ from progress import bar
 from tensorimage.file.writer import *
 from tensorimage.file.reader import *
 from tensorimage.config.info import *
-from tensorimage.util.mkdir import mkdir
+from tensorimage.util.system.mkdir import mkdir
 
 
 class DataWriter:

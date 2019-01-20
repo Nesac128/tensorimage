@@ -20,8 +20,10 @@ class AugmentImageData:
         self.n_classes = n_classes
         self.n_channels = n_channels
 
-        assert len(self.x.shape) == 4 and len(self.y.shape) == 2
-        assert self.x.shape[0] == self.y.shape[0]
+        if not (len(self.x.shape) == 4 and len(self.y.shape) == 2):
+            raise AssertionError()
+        if not self.x.shape[0] == self.y.shape[0]:
+            raise AssertionError()
 
         self.n_images = self.x.shape[0]
         self.sess = tf.Session()
@@ -36,7 +38,7 @@ class AugmentImageData:
         log.info("Image flipping", self)
         augmented_data = tf.constant([], tf.float32, shape=[0, dims[0], dims[1], self.n_channels])
         augmented_labels = tf.constant([], tf.float32, shape=[0, self.n_classes])
-        for (image_n, image), (label_n, label) in zip(enumerate(self.x), enumerate(self.y)):
+        for (image_n, image), label in zip(enumerate(self.x), self.y):
             flip_up_down = tf.image.flip_up_down(image)
             flip_left_right = tf.image.flip_left_right(image)
             random_flip_up_down = tf.image.random_flip_up_down(image)
