@@ -1,22 +1,16 @@
-__all__ = ["train", "util", "image", "file", "data_augmentation", "classify", "config", "make_workspace"]
+__all__ = ["base", "train", "util", "image", "file", "data_augmentation", "classify", "config", "dataset"]
 
-from tensorimage.util.make_workspace import make_workspace
-from tensorimage.util.mkdir import mkdir
-from tensorimage.util.make_file import make_json_file
-from tensorimage.util.convnet_builder import ConvNetBuilder
-from tensorimage.train.display_architecture import display_architecture
-from tensorimage.train.l2_regularization import L2RegularizationBuilder
-from tensorimage.train.models import RosNet
-from tensorimage.train.models import AlexNet
-from tensorimage.train.ops import conv2d
-from tensorimage.train.ops import maxpool2d
+from tensorimage.util.system.make_workspace import make_workspace
+from tensorimage.util.system.mkdir import mkdir
+from tensorimage.util.system.make_file import make_json_file
+from tensorimage.base.display_architecture import display_architecture
+from tensorimage.base.l2_regularization import L2RegularizationBuilder
+from tensorimage.base.ops import conv2d
+from tensorimage.base.ops import maxpool2d
+from tensorimage.base.weights_initializer import init_weights
 from tensorimage.train.trainer import Trainer
-from tensorimage.train.trainer import ClusterTrainer
-from tensorimage.train.weights_initializer import init_weights
+from tensorimage.train.cluster_trainer import ClusterTrainer
 from tensorimage.image.display import display_image
-from tensorimage.image.label_path_writer import write_unclassified_dataset_paths
-from tensorimage.image.label_path_writer import write_labels
-from tensorimage.image.label_path_writer import write_training_dataset_paths
 from tensorimage.image.loader import ImageLoader
 from tensorimage.image.writer import DataWriter
 from tensorimage.image.writer import TrainingDataWriter
@@ -37,6 +31,9 @@ from tensorimage.config.info import base_training_data_store_path
 from tensorimage.config.info import base_unclassified_data_store_path
 from tensorimage.config.info import base_predictions_store_path
 from tensorimage.config.info import base_trained_models_store_path
+from tensorimage.base.models.map.model import model_map
+from tensorimage.base.models import rosnet
+from tensorimage.base.models import alexnet
 from tensorimage.config.manager import set_config
 from tensorimage.config.manager import view_config
 from tensorimage.data_augmentation.ops import AddPepperSaltNoise
