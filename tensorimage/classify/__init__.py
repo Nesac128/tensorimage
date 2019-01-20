@@ -1,1 +1,1 @@
-__all__ = ["restore_model"]
+__all__ = ["classifier", "restore_model"]

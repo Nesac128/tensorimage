@@ -1,5 +1,5 @@
 import tensorflow as tf
-from tensorimage.train.weights_initializer import init_weights
+from tensorimage.base.weights_initializer import init_weights
 
 
 class L2RegularizationBuilder:

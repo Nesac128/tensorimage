@@ -4,16 +4,16 @@ from tensorimage.file.reader import JSONReader
 
 
 class JSONWriter:
-    def __init__(self, id, file_path):
+    def __init__(self, key, file_path):
         """
-        :param id: id (key) to write data to
+        :param key: key to write data to
         :param file_path: file path to write/update data to
         """
-        self.id = id
+        self.key = key
         self.file_path = file_path
         self.udata = None
 
-        self.json_reader = JSONReader(self.id, self.file_path)
+        self.json_reader = JSONReader(self.key, self.file_path)
 
     def parse(self):
         keys = [key for key in self.udata]
@@ -35,11 +35,11 @@ class JSONWriter:
         fdata = self.read()
         try:
             for key, val in zip(keys, values):
-                fdata[self.id][key] = val
+                fdata[self.key][key] = val
         except KeyError:
-            fdata[self.id] = {}
+            fdata[self.key] = {}
             for key, val in zip(keys, values):
-                fdata[self.id][key] = val
+                fdata[self.key][key] = val
         self.udata = fdata
 
     def write(self):

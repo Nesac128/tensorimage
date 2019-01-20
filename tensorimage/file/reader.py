@@ -3,8 +3,8 @@ import json
 
 
 class JSONReader:
-    def __init__(self, id, file_path):
-        self.id = id
+    def __init__(self, key, file_path):
+        self.key = key
         self.file_path = file_path
 
         self.bulk_data = {}
@@ -16,7 +16,7 @@ class JSONReader:
             jsonfile.close()
 
     def select(self):
-        self.selected_data = self.bulk_data[self.id]
+        self.selected_data = self.bulk_data[self.key]
 
 
 class CSVReader:

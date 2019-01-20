@@ -1,7 +1,8 @@
 import numpy as np
 import tensorflow as tf
 from tensorimage.config.info import workspace_dir
-from tensorimage.train.weights_initializer import init_weights
+from tensorimage.base.weights_initializer import init_weights
+from tensorimage.base.models.map.model import model_map
 
 
 class ModelRestorer:
@@ -11,41 +12,20 @@ class ModelRestorer:
         self.architecture = architecture
         self.sess = sess
 
+        self.layer_names = model_map[self.architecture].layer_names
+
     def start(self):
-        if self.architecture == 'RosNet':
-            self.restore_rosnet_model()
-        elif self.architecture == 'AlexNet':
-            self.restore_alexnet_model()
-
-    def restore_rosnet_model(self):
         saver = tf.train.import_meta_graph(workspace_dir + 'user/trained_models/' + self.model_folder_name + '/' + self.model_name + '.meta')
         saver.restore(self.sess, tf.train.latest_checkpoint(workspace_dir + 'user/trained_models/' + self.model_folder_name + '/./'))
 
-        layers = ['conv1', 'conv2', 'fcl', 'out']
-        with tf.variable_scope('RosNet', reuse=tf.AUTO_REUSE):
+        with tf.variable_scope(self.architecture, reuse=tf.AUTO_REUSE):
             with tf.name_scope('weights_restore'):
-                for layer in layers:
-                    ly = self.sess.run('weights/'+layer+':0')
-                    ly_list = np.ndarray.tolist(ly)
-                    init_weights('weights', layer, ly.shape, initializer=tf.initializers.constant(ly_list))
+                for layer in self.layer_names:
+                    layer_weights = self.sess.run('weights/' + layer + ':0')
+                    layer_weights_ = np.ndarray.tolist(layer_weights)
+                    init_weights('weights', layer, layer_weights.shape, initializer=tf.initializers.constant(layer_weights_))
             with tf.name_scope('biases_restore'):
-                for layer in layers:
-                    ly = self.sess.run('biases/'+layer+':0')
-                    ly_list = np.ndarray.tolist(ly)
-                    init_weights('biases', layer, ly.shape, initializer=tf.initializers.constant(ly_list))
-
-    def restore_alexnet_model(self):
-        saver = tf.train.import_meta_graph(workspace_dir + 'user/trained_models/' + self.model_folder_name + '/' + self.model_name + '.meta')
-        saver.restore(self.sess, tf.train.latest_checkpoint(workspace_dir + 'user/trained_models/' + self.model_folder_name + '/./'))
-
-        layers = ['conv1', 'conv2', 'conv3', 'conv4', 'conv5', 'fcl', 'fcl2', 'out']
-        with tf.name_scope('weights_restore'):
-            for layer in layers:
-                ly = self.sess.run('weights/'+layer+':0')
-                ly_list = np.ndarray.tolist(ly)
-                init_weights('weights', layer, ly.shape, initializer=tf.initializers.constant(ly_list))
-        with tf.name_scope('biases_restore'):
-            for layer in layers:
-                ly = self.sess.run('biases/'+layer+':0')
-                ly_list = np.ndarray.tolist(ly)
-                init_weights('biases', layer, ly.shape, initializer=tf.initializers.constant(ly_list))
+                for layer in self.layer_names:
+                    layer_biases = self.sess.run('biases/' + layer + ':0')
+                    layer_biases_ = np.ndarray.tolist(layer_biases)
+                    init_weights('biases', layer, layer_biases.shape, initializer=tf.initializers.constant(layer_biases_))
