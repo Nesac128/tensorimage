@@ -10,7 +10,6 @@ from sklearn.exceptions import DataConversionWarning
 from tensorimage.config.info import *
 from tensorimage.file.reader import *
 from tensorimage.file.writer import *
-from tensorimage.train.l2_regularization import L2RegularizationBuilder
 from tensorimage.data_augmentation._base import BaseOperation
 from tensorimage.base.l2_regularization import L2RegularizationBuilder
 from tensorimage.base.models.map.model import model_map
