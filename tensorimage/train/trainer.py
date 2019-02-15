@@ -12,6 +12,7 @@ from tensorimage.file.reader import *
 from tensorimage.file.writer import *
 from tensorimage.util.convnet_builder import ConvNetBuilder
 from tensorimage.train.l2_regularization import L2RegularizationBuilder
+from tensorimage.data_augmentation._base import BaseOperation
 import tensorimage.util.log as log
 
 # Disable tensorflow & sklearn loggers
@@ -31,7 +32,7 @@ class Trainer:
                  learning_rate: float,
                  l2_regularization_beta: float,
                  architecture: str,
-                 data_augmentation_builder: tuple=(None, False),
+                 data_augmentation_ops: tuple=(),
                  batch_size: int = 32,
                  train_test_split: float = 0.2,
                  n_threads: int = 10,
@@ -42,8 +43,7 @@ class Trainer:
         :param learning_rate: learning rate for optimizer
         :param l2_regularization_beta: value to use for L2 Regularization beta
         :param architecture: one of the CNN class architectures located in models/ directory
-        :param data_augmentation_builder: tuple containing data augmentation builder class and
-        boolean which specifies if to augment or not testing data
+        :param data_augmentation_ops: data augmentation operation objects to apply to training data
         :param train_test_split: proportion of data that will be used as testing set
         """
         self.data_name = data_name
@@ -53,7 +53,7 @@ class Trainer:
         self.train_test_split = train_test_split
         self.l2_beta = l2_regularization_beta
         self.architecture = architecture
-        self.data_augmentation_builder = data_augmentation_builder
+        self.data_augmentation_ops = data_augmentation_ops
         self.batch_size = batch_size
         self.n_threads = n_threads
         self.verbose = verbose
@@ -96,6 +96,8 @@ class Trainer:
         self.config = tf.ConfigProto(intra_op_parallelism_threads=self.n_threads)
         self.sess = tf.Session(config=self.config)
 
+        self.base_op = None
+
     def build_dataset(self):
         log.info("Building dataset...", self)
         self.csv_reader.read_training_dataset(self.data_len, self.n_columns)
@@ -114,14 +116,11 @@ class Trainer:
         self.test_x = self.sess.run(tf.reshape(self.test_x, shape=[self.test_x.shape[0], self.height, self.width, 3]))
         n_channels = self.train_x.shape[3]
 
-        if self.data_augmentation_builder[1]:
-            self.augmented_train_x, self.augmented_test_y = \
-                self.data_augmentation_builder[0].start(
-                    self.train_x, self.train_y, self.verbose, self.n_classes,
-                    (self.height, self.width), n_channels)
+        self.base_op = BaseOperation(self.train_x, self.train_y, self.n_classes, (self.height, self.width), n_channels)
+        self.train_x, self.train_y = self.base_op.augment_images(*self.data_augmentation_ops)
 
     def train(self):
-        x = tf.placeholder(tf.float32, shape=[None, self.height, self.width, 3], name='x_'+self.training_name)
+        x = tf.placeholder(tf.float32, shape=[None, self.height, self.width, self.train_x.shape[3]], name='x_'+self.training_name)
         labels = tf.placeholder(tf.float32, shape=[None, self.n_classes], name='labels_'+self.training_name)
 
         batch_iters = self.train_x.shape[0] // self.batch_size
