@@ -6,46 +6,52 @@
 ![Example](https://cdn-images-1.medium.com/max/1600/1*PAqzvCxPjpDN8RC9HQw45w.jpeg) 
 
 
-__TensorImage__ is an open source library designed to make training and deploying image classification models easy.
-
-## Features
+__TensorImage__ is an open source library designed to make training and deploying image classification models easy, with many built-in and useful features:
 - Cluster training: automatically compare the performance of multiple trainers, speeding up the process of hyperparameter tuning and feature engineering, as there is no need to do it manually
 
 - Multithreaded training: by default, all training operations are run in 10 threads to make training models faster
 
-- Built-in image data augmentation operations, which can be used for feature engineering:
+- Built-in image data augmentation operations for feature engineering:
     - Image flipping
     - Salt-pepper noise
+    - Brightness adjusting
     - Random brightness
+    - Contrast adjusting
     - Random contrast
+    - Hue adjusting
     - Random hue
+    - Saturation adjusting
     - Random saturation
+    - Gamma adjusting
     - Gaussian blur
-    - Colour filtering
+    - Color filtering
+    - Grayscale filter
+    - Median blur
+    - Motion blur
+    - Bilateral blur
+    - Translation
+    - Affine transformations
+    - Perspective transformations
+    - Piecewise affine transformations
 
 - Workspace organization: all datasets, trained models, and internal metadata files are stored automatically inside a workspace directory, where you can quickly find any files you need
 
 - Large-scale image classification: deploy trained models on thousands of images, with predictions for all images being stored in your workspace directory
 
-## Upcoming features
-- More data augmentation operations to apply on images:
-    - Affine/perspective transformations
-    - Random zooming
-    - Random cropping
-    - Individual pepper and salt noise
-    - More image blurring techniques:
-        - Median blur
-        - Average blur
-        - Motion blur
-        - Bilateral blur
-    - Translation
-    
-    
-- Option to apply different data augmentation operations at once, e.g: instead of only applying gaussian blur, to be able to apply gaussian blur, pepper salt noise and random contrast at once, not uniquely separately
-
 - Model inference for individual/batches of images for real-time prediction without writing on disk
 
-- Real-time training from individual/batches of images without reading from disk, automatically training the model from new data, linked to real-time inference without having to store the model in disk (with option to store available) 
+- Real-time training from individual/batches of images without reading from disk
+## Upcoming features
+- More data augmentation operations to apply on images:
+    - Image scaling
+    - Image cropping
+    - Image generation with GANs (Generative Adversarial Networks)
+- Option to apply different data augmentation operations at once, e.g: instead of only applying gaussian blur, to be able to apply gaussian blur, pepper salt noise and random contrast at once, not uniquely separately
+- Deployment of real-time image classification trainers and classifiers in a localhost server
+- Automatic hyperparameter tuning using genetic algorithms
+- Real-time object detection model training
+- Real-time object detection model inference
+- Deployment of real-time object detection trainers and classifiers in a localhost server
 
 ## Installation
 From the terminal:
