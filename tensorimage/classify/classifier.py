@@ -7,16 +7,18 @@ from tensorimage.config.info import *
 from tensorimage.image.display import display_image
 from tensorimage.file.reader import *
 from tensorimage.util.system.mkdir import mkdir
-from tensorimage.classify.restore_model import ModelRestorer
 from tensorimage.base.models.map.model import model_map
+from tensorimage.base.model import Model
+from tensorimage.base.metadata_reader import TrainerMetadata, UnclassifiedDatasetMetadata
 
 
-class Classifier:
+class Classifier(TrainerMetadata, UnclassifiedDatasetMetadata):
     def __init__(self,
-                 data_name,
-                 training_name,
-                 classification_name,
-                 show_images: tuple = (False, 10)):
+                 data_name: str,
+                 training_name: str,
+                 classification_name: str,
+                 show_images: tuple = (False, 10),
+                 n_threads: int = 10):
         """
         :param data_name: name which was used as data_name when extracting the unclassified data from image dataset;
         used to identify the data to classify
@@ -27,6 +29,9 @@ class Classifier:
         :param show_images: tuple containing a boolean (display images with predicted classes or not) and the maximum
         number of image to display
         """
+        TrainerMetadata.__init__(self, training_name)
+        UnclassifiedDatasetMetadata.__init__(self, data_name)
+
         self.data_name = data_name
         self.training_name = training_name
         self.classification_name = classification_name
@@ -36,39 +41,15 @@ class Classifier:
         except NameError:
             self.show_images = False
             self.max_images = show_images[1]
+        self.n_threads = n_threads
 
         self.raw_predictions = []
         self.predictions = {}
 
-        # Read unclassified data metadata
-        self.metadata_reader = JSONReader(self.data_name, dataset_metafile_path)
-        self.metadata_reader.bulk_read()
-        self.metadata_reader.select()
-        image_metadata = self.metadata_reader.selected_data
-        self.data_path = image_metadata["data_path"]
-        self.width = image_metadata["width"]
-        self.height = image_metadata["height"]
-        self.path_file = image_metadata["path_file"]
-        self.trainable = image_metadata["trainable"]
-        if ast.literal_eval(self.trainable):
-            raise AssertionError("Data is trainable")
-
-        # Read trained model metadata
-        self.training_metadata_reader = JSONReader(self.training_name, training_metafile_path)
-        self.training_metadata_reader.bulk_read()
-        self.training_metadata_reader.select()
-        training_metadata = self.training_metadata_reader.selected_data
-        self.model_path = training_metadata["model_folder_name"]
-        self.model_name = training_metadata["model_name"]
-        self.training_dataset_name = training_metadata["dataset_name"]
-        self.n_classes = training_metadata["n_classes"]
-        self.model_folder_name = self.model_path.split('/')[-1]
-        self.architecture = training_metadata["architecture"]
-
         # Define prediction storage paths
-        self.raw_predictions_path = workspace_dir+'user/predictions/'+self.model_folder_name+'/'+self.classification_name + \
+        self.raw_predictions_path = base_predictions_store_path+self.model_name+'/'+self.classification_name + \
             '/raw_predictions_.csv'
-        self.predictions_paths_path = workspace_dir+'user/predictions/'+self.model_folder_name+'/'+self.classification_name + \
+        self.predictions_paths_path = base_predictions_store_path+self.model_name+'/'+self.classification_name + \
             '/predictions_to_paths.csv'
 
         self.csv_dataset_reader = CSVReader(self.data_path)
@@ -86,8 +67,10 @@ class Classifier:
         self.X = None
         self.X_ = None
 
-        self.sess = tf.Session()
-        self.model_restorer = ModelRestorer(self.model_path, self.model_name, self.architecture, self.sess)
+        self.config = tf.ConfigProto(intra_op_parallelism_threads=self.n_threads)
+        self.sess = tf.Session(config=self.config)
+
+        self.model = Model(self.model_name, self.architecture, sess=self.sess)
 
         self.n_images = 0
 
@@ -98,12 +81,12 @@ class Classifier:
         self.n_images = len(self.X)
 
     def predict(self):
-        self.model_restorer.start()
+        self.sess = self.model.restore()
 
         x = tf.placeholder(tf.float32, [None, self.height, self.width, 3])
 
-        convnet = model_map[self.architecture](x, self.n_classes)
-        model = convnet.convnet()
+        convnet = model_map[self.architecture](self.height, self.width, self.n_classes)
+        model = convnet.convnet(x)
         self.sess.run(tf.global_variables_initializer())
 
         self.X = self.sess.run(tf.reshape(self.X, [self.X.shape[0], self.height, self.width, 3]))
@@ -113,8 +96,8 @@ class Classifier:
     
     def write_predictions(self):
         mkdir(base_predictions_store_path)
-        mkdir(base_predictions_store_path + '/' + self.model_folder_name)
-        mkdir(base_predictions_store_path + '/' + self.model_folder_name + '/' + self.classification_name)
+        mkdir(base_predictions_store_path + '/' + self.model_name)
+        mkdir(base_predictions_store_path + '/' + self.model_name + '/' + self.classification_name)
 
         for image_n in range(self.n_images):
             self.X_[image_n] = np.append(self.X_[image_n], self.predictions[self.image_paths[image_n]])
@@ -137,3 +120,45 @@ class Classifier:
     def _match_class_id(self):
         for n, fp in enumerate(self.raw_predictions):
             self.predictions[self.image_paths[n]] = self.class_id[str(fp)]
+
+
+class LiveClassifier(TrainerMetadata):
+    def __init__(self,
+                 training_name: str,
+                 n_threads: int):
+        TrainerMetadata.__init__(self, training_name)
+
+        self.training_name = training_name
+        self.n_threads = n_threads
+
+        self.config = tf.ConfigProto(intra_op_parallelism_threads=self.n_threads)
+        self.sess = tf.Session(config=self.config)
+        model = Model(self.model_name, self.architecture, sess=self.sess)
+        self.sess = model.restore()
+
+        self.x = tf.placeholder(tf.float32, [None, self.height, self.width, self.n_channels])
+        self.convnet = model_map[self.architecture](self.height, self.width, self.n_classes)
+        self.model = self.convnet.convnet(self.x)
+
+        self.class_id_reader = JSONReader(None, workspace_dir + 'user/training_datasets/' +
+                                          self.training_dataset_name + '/class_id.json')
+        self.class_id_reader.bulk_read()
+        self.class_id = self.class_id_reader.bulk_data
+
+    def predict(self, images):
+        if not isinstance(images, np.ndarray):
+            raise ValueError("Images must be of type numpy.ndarray")
+        if not images.shape[1:4] == (self.height, self.width, self.n_channels):
+            raise AssertionError("Image is not of shape ", (self.height, self.width, self.n_channels))
+        raw_predictions = self.sess.run(self.model, feed_dict={self.x: images})
+        return self._match_class_id(raw_predictions)
+
+    def reload_model(self):
+        model = Model(self.model_name, self.architecture, sess=self.sess)
+        self.sess = model.restore()
+
+    def _match_class_id(self, raw_predictions):
+        predictions = []
+        for n, fp in enumerate(raw_predictions):
+            predictions[n] = self.class_id[str(fp)]
+        return tuple(predictions)
