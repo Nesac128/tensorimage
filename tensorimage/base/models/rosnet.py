@@ -5,16 +5,13 @@ from tensorimage.base.display_architecture import display_architecture
 
 class RosNet:
     """rosnet"""
-    def __init__(self, x, n_classes):
-        self.x = x
+    def __init__(self, height, width, n_channels, n_classes):
         self.n_classes = n_classes
 
-        height, width = self.x.shape[1], self.x.shape[2]
-        self.shape = [1, height, width, 3]
+        self.shape = [1, height, width, n_channels]
         self.rv = self.get_rv(self.shape)
 
         self.layer_names = ["conv1", "conv2", "fcl", "out"]
-
         self.weights_shapes = {
             self.layer_names[0]: [5, 5, 3, 3],
             self.layer_names[1]: [3, 3, 3, 64],
@@ -28,11 +25,11 @@ class RosNet:
             "out": [self.n_classes]
         }
 
-    def convnet(self):
+    def convnet(self, x):
         with tf.name_scope('rosnet'):
             with tf.name_scope('conv1_layer'):
                 with tf.name_scope('conv1'):
-                    conv1 = conv2d(self.x, init_weights('weights', 'conv1', [5, 5, 3, 3]) +
+                    conv1 = conv2d(x, init_weights('weights', 'conv1', [5, 5, 3, 3]) +
                                    init_weights('biases', 'conv1', [3]))
                 with tf.name_scope('conv1_maxpool2d'):
                     conv1_maxpool2d = maxpool2d(conv1)
@@ -44,7 +41,7 @@ class RosNet:
                     conv2_maxpool2d = maxpool2d(conv2)
             with tf.name_scope('fcl_layer'):
                 with tf.name_scope('flatten'):
-                    fclr = tf.reshape(conv2_maxpool2d, [tf.shape(self.x)[0], self.rv*64])
+                    fclr = tf.reshape(conv2_maxpool2d, [tf.shape(x)[0], self.rv*64])
                 with tf.name_scope('ReLU_add_matmul'):
                     fcl = tf.nn.relu(tf.add(tf.matmul(fclr, init_weights('weights', 'fcl', [self.rv*64, 128])),
                                             init_weights('biases', 'fcl', [128])))
