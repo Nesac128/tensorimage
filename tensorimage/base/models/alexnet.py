@@ -5,12 +5,36 @@ from tensorimage.base.display_architecture import display_architecture
 
 class AlexNet:
     """alexnet"""
-    def __init__(self, x, n_classes):
-        self.x = x
+    def __init__(self, height, width, n_channels, n_classes):
+        self.height = height
+        self.width = width
+        self.n_channels = n_channels
         self.n_classes = n_classes
 
-    def convnet(self):
-        x = tf.image.resize_images(self.x, tf.constant([227, 227]))
+        self.layer_names = ["conv1", "conv2", "conv3", "conv4", "conv5", "fcl", "fcl2", "out"]
+        self.weights_shapes = {
+            self.layer_names[0]: [11, 11, 3, 96],
+            self.layer_names[1]: [5, 5, 96, 256],
+            self.layer_names[2]: [3, 3, 256, 384],
+            self.layer_names[3]: [3, 3, 384, 384],
+            self.layer_names[4]: [3, 3, 384, 256],
+            self.layer_names[5]: [8 * 8 * 256, 4096],
+            self.layer_names[6]: [4096, 4096],
+            self.layer_names[7]: [4096, self.n_classes]
+        }
+        self.biases_shapes = {
+            self.layer_names[0]: [96],
+            self.layer_names[1]: [256],
+            self.layer_names[2]: [384],
+            self.layer_names[3]: [384],
+            self.layer_names[4]: [256],
+            self.layer_names[5]: [4096],
+            self.layer_names[6]: [4096],
+            self.layer_names[7]: [self.n_classes]
+        }
+
+    def convnet(self, x):
+        x = tf.image.resize_images(x, tf.constant([227, 227]))
         with tf.name_scope('alexnet'):
             with tf.name_scope('conv1_layer'):
                 with tf.name_scope('conv1'):
@@ -51,7 +75,7 @@ class AlexNet:
                     fclr = tf.reshape(conv5_maxpool2d, [tf.shape(x)[0], 8*8*256])
                     print(fclr.shape, " FCL reshape")
                 with tf.name_scope('ReLU_add_matmul'):
-                    fcl = tf.nn.relu(tf.add(tf.matmul(fclr, init_weights('weights', 'fcl', 8 * 8 * 256, 4096)),
+                    fcl = tf.nn.relu(tf.add(tf.matmul(fclr, init_weights('weights', 'fcl', [8 * 8 * 256, 4096])),
                                             init_weights('biases', 'fcl', [4096])))
                     print(fcl.shape, " FCL")
             with tf.name_scope('fcl2_layer'):
