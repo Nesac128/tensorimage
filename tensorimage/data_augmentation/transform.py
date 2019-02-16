@@ -1,6 +1,9 @@
 import cv2
 import numpy as np
 from skimage.transform import PiecewiseAffineTransform, warp
+import tensorflow as tf
+
+from tensorimage.data_augmentation._base import TensorFlowOp
 
 
 class AffineTransformation:
@@ -55,4 +58,17 @@ class PiecewiseAffineTransformation:
         out_rows = image.shape[0] - self.dst_row_mult2 * self.dst_mult
         out_cols = image.shape[1]
         image = warp(image, pwtrans, output_shape=(out_rows, out_cols))
+        return image
+
+
+class Translate(TensorFlowOp):
+    def __init__(self, dx, dy, interpolation='NEAREST'):
+        super().__init__()
+        self.dx = dx
+        self.dy = dy
+        self.interpolation = interpolation
+
+    def apply(self, image):
+        image = tf.contrib.image.translate(image, (self.dx, self.dy), interpolation=self.interpolation)
+        image = self.sess.run(image)
         return image
