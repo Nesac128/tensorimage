@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setup(
     name='TensorImage',
-    version='2.0.2',
+    version='2.1.0',
     description='Image classification library for easily and quickly deploying models and training classifiers',
     long_description=long_description,
     author='TensorImage',
