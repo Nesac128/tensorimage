@@ -264,7 +264,7 @@ class LiveTrainer:
         self.testing_accuracy = []
         self.testing_cost = []
 
-        self.stop = False
+        self.stop_ = False
 
     @staticmethod
     def threaded(fn):
@@ -285,7 +285,7 @@ class LiveTrainer:
         self.train_y = np.concatenate((self.train_y, train_y))
 
     def stop(self):
-        self.stop = True
+        self.stop_ = True
 
     @threaded
     def train(self):
@@ -309,7 +309,7 @@ class LiveTrainer:
             self.testing_accuracy.append(self.sess.run(testing_accuracy, feed_dict={self.x: self.test_x, self.labels: self.test_y}))
             self.testing_cost.append(self.sess.run(cost_function, feed_dict={self.x: self.test_x, self.labels: self.test_y}))
             self.training_cost.append(self.sess.run(cost_function, feed_dict={self.x: self.train_x, self.labels: self.train_y}))
-            if self.stop:
+            if self.stop_:
                 break
 
     def update_model(self):
